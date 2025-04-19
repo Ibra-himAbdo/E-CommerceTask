@@ -1,0 +1,18 @@
+@inject ICartService CartService
+@inject NavigationManager NavigationManager
+@implements IDisposable
+
+<MudBadge Content="CartService.TotalItems"
+          Color="Color.Primary"
+          Overlap="true"
+          Class="ms-1 me-3 mt-2">
+    <MudIconButton Size="Size.Medium"
+                   Icon="@Icons.Material.Filled.ShoppingCart"
+                   OnClick="GoToSoppingCartPage"
+                   Color="Color.Default"/>
+</MudBadge>
+<style>
+    .mud-badge.mud-badge-top.right.mud-badge-overlap {
+        inset: auto auto calc(100% - 20px) calc(100% - 18px) !important;
+    }
+</style>

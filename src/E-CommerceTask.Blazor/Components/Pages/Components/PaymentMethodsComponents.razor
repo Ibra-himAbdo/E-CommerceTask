@@ -1,0 +1,90 @@
+<MudText Typo="Typo.body1" Class="mb-4"><strong>Payment Method</strong></MudText>
+<MudChipSet T="PaymentMethod"
+            @bind-SelectedValue="_selectedPayment"
+            CheckMark SelectionMode="SelectionMode.SingleSelection"
+            Class="mb-3">
+
+    <MudChip Text="@nameof(PaymentMethod.CreditCard)" Value="PaymentMethod.CreditCard"/>
+    <MudChip Text="@nameof(PaymentMethod.PayPal)" Value="PaymentMethod.PayPal"/>
+    <MudChip Text="@nameof(PaymentMethod.GooglePay)" Value="PaymentMethod.GooglePay"/>
+    <MudChip Text="@nameof(PaymentMethod.ApplePay)" Value="PaymentMethod.ApplePay"/>
+</MudChipSet>
+
+@switch (_selectedPayment)
+{
+    case PaymentMethod.CreditCard:
+    default:
+        <EditForm Model="@_card" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator/>
+            <MudGrid Spacing="4">
+                <MudItem xs="12">
+                    <MudTextField @bind-Value="_card.CardNumber"
+                                  MaxLength="16"
+                                  Required="true"
+                                  Placeholder="Enter Card Number"
+                                  Variant="Variant.Outlined"
+                                  Adornment="Adornment.End"
+                                  AdornmentIcon="@Icons.Material.Filled.CreditCard"
+                                  For="@(() => _card.CardNumber)"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_card.ExpirationDate"
+                                  MaxLength="5"
+                                  Required="true"
+                                  Placeholder="MM/YY"
+                                  Variant="Variant.Outlined"
+                                  For="@(() => _card.ExpirationDate)"/>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField @bind-Value="_card.CVV"
+                                  MaxLength="4"
+                                  Required="true"
+                                  Placeholder="CVV"
+                                  Variant="Variant.Outlined"
+                                  For="@(() => _card.CVV)"/>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudButton Type="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="ml-auto"
+                               FullWidth="true">
+                        Pay Now
+                    </MudButton>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+        break;
+    case PaymentMethod.PayPal:
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="ml-auto"
+                   FullWidth="true"
+                   Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.Payment">
+            Pay with PayPal
+        </MudButton>
+        break;
+    case PaymentMethod.GooglePay:
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Dark"
+                   Class="ml-auto"
+                   FullWidth="true"
+                   Size="Size.Large"
+                   StartIcon="@Icons.Custom.Brands.Google">
+            Pay with Google Pay
+        </MudButton>
+        break;
+    case PaymentMethod.ApplePay:
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Default"
+                   Class="ml-auto"
+                   FullWidth="true"
+                   Size="Size.Large"
+                   StartIcon="@Icons.Material.Filled.PhoneIphone">
+            Pay with Apple Pay
+        </MudButton>
+        break;
+}
+
+

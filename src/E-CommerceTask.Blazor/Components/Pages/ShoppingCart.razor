@@ -1,0 +1,124 @@
+@page "/ShoppingCart"
+@inject ICartService CartService
+<PageTitle>Shopping Cart</PageTitle>
+rounded-lg
+
+
+<MudGrid>
+    <!-- Left Side: Shopping Cart Items -->
+    <MudItem xs="12" sm="7">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6" Class="mb-3">Shopping Cart Items</MudText>
+                @foreach (var item in _products)
+                {
+                    <MudStack Spacing="0"
+                              Row="true"
+                              Class="d-flex"
+                              Wrap="Wrap.Wrap"
+                              AlignItems="AlignItems.Center"
+                              Justify="Justify.FlexStart"
+                              StretchItems="StretchItems.Middle">
+                        <MudItem Class="mud-grid-item-sm-4-fix">
+                            <MudImage Class="rounded small-screen-img"
+                                      Src="@ImageUrl(item.ImageUrl)"/>
+                        </MudItem>
+                        <MudItem Class="mx-2 py-2">
+                            <MudText Typo="Typo.subtitle2"
+                                     Class="truncate-text">
+                                @item.Name
+                            </MudText>
+                            <MudText Typo="Typo.body2"
+                                     Class="truncate-text">
+                                @item.Description
+                            </MudText>
+                            <MudText Typo="Typo.body2"
+                                     Class="truncate-text">
+                                $@item.Price
+                            </MudText>
+                        </MudItem>
+                        <MudItem Class="my-2">
+                            <MudStack Spacing="1"
+                                      Row="true"
+                                      AlignItems="AlignItems.Center"
+                                      Justify="Justify.FlexStart"
+                                      Wrap="Wrap.Wrap">
+                                <MudIconButton Color="Color.Primary"
+                                               OnClick="async () => await AddItem(item,1)"
+                                               Icon="@Icons.Material.Filled.AddCircle"/>
+                                <MudText Typo="Typo.body1">@item.Quantity</MudText>
+                                <MudIconButton Color="Color.Secondary"
+                                               OnClick="async () => await RemoveItem(item.Id)"
+                                               Icon="@Icons.Material.Filled.RemoveCircle"/>
+                            </MudStack>
+                        </MudItem>
+                    </MudStack>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.h6" Class="mb-2">Order Summary</MudText>
+
+            <MudStack StretchItems="StretchItems.Start" Row="true">
+                <MudText Typo="Typo.body1">
+                    Subtotal (@CartService.TotalItems items)
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-2">
+                    $@CartService.TotalPrice
+                </MudText>
+            </MudStack>
+
+            <MudStack StretchItems="StretchItems.Start" Row="true">
+                <MudText Typo="Typo.body1">
+                    Shopping Fee
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-2">
+                    $0
+                </MudText>
+            </MudStack>
+
+            <MudStack StretchItems="StretchItems.Start" Row="true">
+                <MudText Typo="Typo.body1">
+                    Total
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-2">
+                    $@CartService.TotalPrice
+                </MudText>
+            </MudStack>
+            <MudDivider/>
+            <MudTextField @bind-Value="Code"
+                          Label="Promo Code"
+                          MaxLength="6"
+                          Placeholder="Enter promo code"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Normal"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.ArrowForwardIos"
+                          OnAdornmentClick="ButtonTestClick"
+                          AdornmentAriaLabel="Use code"/>
+            <MudDivider Class="my-1"/>
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Color="Color.Primary"
+                       Href="/Checkout"
+                       Class="mx-auto"
+                       StartIcon="@Icons.Material.Filled.ShoppingCartCheckout">
+                Checkout
+            </MudButton>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code
+{
+    public string Code { get; set;} = "WEX123";
+
+    void ButtonTestClick()
+    {
+        Console.WriteLine(Code);
+    }
+}

@@ -1,0 +1,35 @@
+.square-image {
+    position: relative;
+    width: 100%;
+    padding-top: 100%; /* 1:1 aspect ratio (square) */
+    background-size: cover;
+    background-position: center;
+}
+
+.square-image img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.mud-grid-item-sm-4-fix {
+    flex-basis: 0 !important;
+}
+
+.small-screen-img {
+    min-height: 104px;
+    max-height: 84px;
+    max-width: 150px;
+}
+
+.truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 210px; /* or 100%, or adjust as needed */
+}
+

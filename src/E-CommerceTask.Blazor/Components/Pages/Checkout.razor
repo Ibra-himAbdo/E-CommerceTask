@@ -1,0 +1,88 @@
+@page "/Checkout"
+@inject ICartService CartService
+<PageTitle>Checkout</PageTitle>
+
+<MudGrid>
+    <MudItem xs="12" sm="7">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h5" Class="mb-4">
+                    <strong>Shipping & Payment</strong>
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    <strong>Shipping Address</strong>
+                </MudText>
+                <MudTextField @bind-Value="_address"
+                              Class="mb-4"
+                              Required="true"
+                              Placeholder="Enter your address"
+                              Variant="Variant.Outlined"
+                              Margin="Margin.Normal"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.LocationOn"/>
+
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    <strong>Shipping Method</strong>
+                </MudText>
+                <MudPaper Class="d-flex flex-column flex-grow-1 gap-4 mb-5" Elevation="0">
+                    <MudRadioGroup T="ShippingMethod"
+                                   ValueChanged="OnShippingChanged"
+                                   @bind-SelectedOption="_selectedShipping">
+                        <MudPaper Class="border rounded mb-3" Width="100%">
+                            <MudRadio Value="@(ShippingMethod.Standard)" Class="py-1">Standard</MudRadio>
+                        </MudPaper>
+                        <MudPaper Class="border rounded mb-3" Width="100%">
+                            <MudRadio Value="@(ShippingMethod.Express)" Class="py-1">Express</MudRadio>
+                        </MudPaper>
+                        <MudPaper Class="border rounded mb-3" Width="100%">
+                            <MudRadio Value="@(ShippingMethod.NextDay)" Class="py-1">Next Day</MudRadio>
+                        </MudPaper>
+                    </MudRadioGroup>
+                </MudPaper>
+                <PaymentMethodsComponents/>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="5">
+        <MudPaper Class="pa-4 mud-height-full">
+            <MudText Typo="Typo.h5" Class="mb-2">Review Your Order</MudText>
+            <MudStack StretchItems="StretchItems.Start" Row="true">
+                <MudText Typo="Typo.body1">
+                    Subtotal (@CartService.TotalItems items)
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-2">
+                    <strong>$@CartService.TotalPrice</strong>
+                </MudText>
+            </MudStack>
+
+            <MudStack StretchItems="StretchItems.Start" Row="true">
+                <MudText Typo="Typo.body1">
+                    Shopping Fee
+                </MudText>
+                <MudText Typo="Typo.body1" Class="mb-2">
+                    <strong>$@CartService.ShoppingFee</strong>
+                </MudText>
+            </MudStack>
+
+            <MudStack StretchItems="StretchItems.Start" Row="true">
+            <MudText Typo="Typo.h6">
+                Total
+            </MudText>
+            <MudText Typo="Typo.h6" Class="mb-2">
+                <strong>$@CartService.TotalPrice</strong>
+            </MudText>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    string _address = string.Empty;
+    private ShippingMethod _selectedShipping = ShippingMethod.Standard;
+
+    protected override async Task OnInitializedAsync()
+        => await CartService.AddShoppingFee(_selectedShipping);
+
+    private async Task OnShippingChanged(ShippingMethod method)
+        => await CartService.AddShoppingFee(method);
+}

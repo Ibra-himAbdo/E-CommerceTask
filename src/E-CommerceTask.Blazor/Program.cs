@@ -1,10 +1,8 @@
-using MudBlazor.Services;
-using E_CommerceTask.Blazor.Components;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
+builder.Services.AddScoped<ICartService, CartService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -21,7 +19,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 
 app.UseAntiforgery();
 
