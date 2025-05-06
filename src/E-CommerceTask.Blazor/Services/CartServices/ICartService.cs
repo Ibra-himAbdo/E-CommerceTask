@@ -9,10 +9,12 @@ public interface ICartService
     Task AddToCart(Product product);
     Task AddItemToCart(Product product, int quantity);
     Task RemoveFromCart(int productId);
+    Task DeleteFromCart(int productId);
     Task ClearCart();
     Task<List<Product>> GetCartItems();
     Task<decimal> GetTotalPrice();
     Task<int> GetTotalItems();
     Task<bool> IsProductInCart(Product product);
     Task AddShoppingFee(ShippingMethod shippingMethod);
+    Task UsePromoCode(string code);
 }

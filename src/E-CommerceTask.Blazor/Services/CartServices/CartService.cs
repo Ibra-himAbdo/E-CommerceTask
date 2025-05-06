@@ -3,15 +3,9 @@ namespace E_CommerceTask.Blazor.Services.CartServices;
 public class CartService : ICartService
 {
     public event Action? OnChange;
-    private List<Product> _cartItems = new();
+    private List<Product> _cartItems = [];
     private decimal _shoppingFee = 0.0m;
     private static readonly Random Random = new Random();
-
-    public CartService()
-    {
-        if (_cartItems.Count == 0)
-            _cartItems = GetRandomProducts(3);
-    }
 
     public int TotalItems => _cartItems.Sum(p => p.Quantity);
     public decimal TotalPrice => _cartItems.Sum(p => p.Price * p.Quantity) + _shoppingFee;
@@ -69,6 +63,18 @@ public class CartService : ICartService
         return Task.CompletedTask;
     }
 
+    public Task DeleteFromCart(int productId)
+    {
+        var existingProduct =
+            _cartItems.FirstOrDefault(p => p.Id == productId);
+
+        if (existingProduct is not null)
+            _cartItems.Remove(existingProduct);
+
+        NotifyStateChanged();
+        return Task.CompletedTask;
+    }
+
     public Task ClearCart()
     {
         _cartItems.Clear();
@@ -109,6 +115,23 @@ public class CartService : ICartService
             _ => 0.00m
         };
         _shoppingFee = fee;
+        NotifyStateChanged();
+        return Task.CompletedTask;
+    }
+
+    public Task UsePromoCode(string code)
+    {
+        switch (code)
+        {
+            case "DISCOUNT10":
+            default:
+                _shoppingFee -= 10.00m;
+                break;
+            case "FREESHIP":
+                _shoppingFee = 0.00m;
+                break;
+        }
+
         NotifyStateChanged();
         return Task.CompletedTask;
     }
