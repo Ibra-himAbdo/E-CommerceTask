@@ -1,0 +1,248 @@
+@page "/admin/products/new"
+@page "/admin/products/edit/{Id:int}"
+@inject ApplicationDbContext DbContext
+@inject IJSRuntime JsRuntime
+@inject IWebHostEnvironment Environment
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin")]
+
+<EditForm Model="@model" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudGrid>
+        <MudItem xs="12" sm="7">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h5" Class="mb-4">@(IsEditMode ? "Edit Product" : "Add New Product")</MudText>
+
+                    <MudTextField Label="Product Name *"
+                                  @bind-Value="model.Name"
+                                  For="@(() => model.Name)"
+                                  HelperText="Max. 100 characters"
+                                  Immediate="true"/>
+
+                    <MudTextField Label="Description *" Class="mt-3"
+                                  @bind-Value="model.Description"
+                                  For="@(() => model.Description)"
+                                  Lines="2"
+                                  HelperText="Max. 500 characters"
+                                  Immediate="true"/>
+
+                    <MudNumericField Label="Price *" Class="mt-3"
+                                     @bind-Value="model.Price"
+                                     Format="C2"
+                                     Culture="@CultureInfo.GetCultureInfo("en-US")"
+                                     For="@(() => model.Price)"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.AttachMoney"
+                                     Immediate="true"/>
+
+                    <MudTextField Label="Quantity *" Class="mt-3"
+                                  @bind-Value="model.Quantity"
+                                  For="@(() => model.Quantity)"
+                                  InputType="InputType.Number"
+                                  Immediate="true"/>
+
+                    <MudSelect Label="Category *" Class="mt-3"
+                               @bind-Value="model.CategoryId"
+                               For="@(() => model.CategoryId)"
+                               Immediate="true">
+                        <MudSelectItem Value="0">-- Select Category --</MudSelectItem>
+                        @foreach (var category in categories)
+                        {
+                            <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudSlider Label="Rating" Class="mt-4"
+                               @bind-Value="model.Rate"
+                               Min="0" Max="5" Step="0.5"
+                               ValueLabel="true"
+                               For="@(() => model.Rate)"/>
+
+                    <MudText Typo="Typo.subtitle2" Class="mt-4">Game Image</MudText>
+                    <MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+                        <ActivatorContent>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.CloudUpload">
+                                Upload Files
+                            </MudButton>
+                        </ActivatorContent>
+                    </MudFileUpload>
+
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Default"
+                               Href="/">
+                        Cancel
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               Class="ml-auto"
+                               Disabled="@_isProcessing">
+                        @if (_isProcessing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Class="mr-2"/>
+                        }
+                        @(IsEditMode ? "Update Product" : "Add Product")
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="5">
+            <MudPaper Class="pa-4 mud-height-full">
+                <MudText Typo="Typo.subtitle2" Class="mb-3">Validation Summary</MudText>
+                <ValidationSummary/>
+
+                @if (success)
+                {
+                    <MudAlert Severity="Severity.Success" Class="mt-3" Icon="@Icons.Material.Filled.CheckCircle">
+                        Product @(IsEditMode ? "updated" : "added") successfully!
+                    </MudAlert>
+                }
+
+                <MudText Typo="Typo.subtitle2" Class="mt-4">Image Preview</MudText>
+                @if (uploadedFile != null)
+                {
+                    <img src="@GetFullImageUrl($"/uploads/products/{uploadedFile.Name}")"
+                         alt="Uploaded Image"
+                         style="max-width: 100%; max-height: 300px;" />
+                }
+                else if (!string.IsNullOrWhiteSpace(model.ImageUrl))
+                {
+                    <img src="@GetFullImageUrl(model.ImageUrl)"
+                         alt="Product Image"
+                         style="max-width: 100%; max-height: 300px;" />
+                }
+                else
+                {
+                    <img src="https://fakeimg.pl/600x400?text=Product+Image"
+                         alt="Default Image"
+                         style="max-width: 100%; max-height: 300px;" />
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Product model = new();
+    private List<ProductCategory> categories = [];
+    private string baseUrl;
+    private IBrowserFile? uploadedFile;
+    private const long MaxFileSize = 15 * 1024 * 1024;
+    private bool IsEditMode => Id > 0;
+    private bool _isUploading;
+    private bool _isProcessing;
+    private bool success;
+    private string uploadError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        baseUrl = NavigationManager.BaseUri;
+        categories = await DbContext.Categories.ToListAsync();
+        if (IsEditMode)
+        {
+            model = await DbContext.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == Id) ?? new Product();
+        }
+    }
+
+
+    private string GetFullImageUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url))
+            return "https://fakeimg.pl/600x400?text=Product+Image";
+        return url.StartsWith("http")
+            ? url
+            : $"{NavigationManager.BaseUri.TrimEnd('/')}{url}";
+    }
+
+    private async Task OnValidSubmit(EditContext context)
+    {
+        _isProcessing = true;
+        success = false;
+        uploadError = string.Empty;
+
+        try
+        {
+            model.NormalizedName = model.Name?.ToUpper()!;
+            model.DateAdded = IsEditMode ? model.DateAdded : DateTime.UtcNow;
+            model.ImageUrl = uploadedFile != null
+                ? Path.Combine("uploads", "products", uploadedFile.Name)
+                : model.ImageUrl;
+
+            if (IsEditMode)
+            {
+                DbContext.Products.Update(model);
+            }
+            else
+            {
+                await DbContext.Products.AddAsync(model);
+            }
+
+            await DbContext.SaveChangesAsync();
+            success = true;
+
+            // Reset form if not in edit mode
+            if (!IsEditMode)
+            {
+                model = new Product();
+                uploadedFile = null;
+                context.NotifyValidationStateChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            uploadError = $"Error saving product: {ex.Message}";
+        }
+        finally
+        {
+            _isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UploadFiles(IBrowserFile? file)
+    {
+        if (file == null)
+        {
+            Snackbar.Add("No file selected.", Severity.Error);
+            return;
+        }
+
+        if (file.Size > MaxFileSize)
+        {
+            Snackbar.Add("File size exceeds the 15MB limit.", Severity.Error);
+            return;
+        }
+
+        _isUploading = true;
+        uploadedFile = file;
+        StateHasChanged();
+
+        var folderPath = Path
+            .Combine(Environment.WebRootPath, "uploads", "products");
+
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        var filePath = Path.Combine(folderPath, file.Name);
+        await using var stream = file.OpenReadStream(MaxFileSize);
+        await using var fileStream = new FileStream(filePath, FileMode.Create);
+        await stream.CopyToAsync(fileStream);
+
+        model.ImageUrl = $"/uploads/products/{uploadedFile.Name}";
+
+        _isUploading = false;
+        StateHasChanged();
+        Console.WriteLine("File uploaded successfully!");
+    }
+
+}
+

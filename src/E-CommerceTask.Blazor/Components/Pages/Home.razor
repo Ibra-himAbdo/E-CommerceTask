@@ -1,27 +1,65 @@
 ﻿@page "/"
 @inject ICartService CartService
+@inject ApplicationDbContext DbContext
 <PageTitle>Home</PageTitle>
 
-<MudGrid>
+<div class="mb-5">
+    <TopProductCarousel Products="@_products.OrderByDescending(p => p.Rate).Take(5).ToList()"/>
+</div>
+
+<MudStack Class="mb-3"
+          Row="true"
+          Wrap="Wrap.Wrap"
+          AlignItems="AlignItems.Start"
+          Justify="Justify.FlexStart"
+          StretchItems="StretchItems.Start"
+          Spacing="2">
+    <MudItem>
+        <MudChipSet T="ProductFilters"
+                    SelectedValueChanged="OnSelectedFilterChanged"
+                    CheckMark SelectionMode="SelectionMode.SingleSelection"
+                    Class="mb-3">
+            <MudChip Text="@nameof(ProductFilters.All)"
+                     Value="ProductFilters.All"/>
+            <MudChip Text="@nameof(ProductFilters.TopRated)"
+                     Value="ProductFilters.TopRated"/>
+            <MudChip Text="@nameof(ProductFilters.Newest)"
+                     Value="ProductFilters.Newest"/>
+            <MudChip Text="@nameof(ProductFilters.Oldest)"
+                     Value="ProductFilters.Oldest"/>
+            <MudChip Text="@nameof(ProductFilters.PriceLowToHigh)"
+                     Value="ProductFilters.PriceLowToHigh"/>
+            <MudChip Text="@nameof(ProductFilters.PriceHighToLow)"
+                     Value="ProductFilters.PriceHighToLow"/>
+        </MudChipSet>
+    </MudItem>
+    <MudItem>
+        <MudSelect T="int"
+                   Style="min-width: 160px;"
+                   Variant="Variant.Outlined"
+                   Label="Select Category"
+                   Margin="Margin.Dense"
+                   SelectedValuesChanged="OnSelectedCategoriesChanged!">
+            <MudSelectItem Value="0">All Categories</MudSelectItem>
+            @foreach (var category in DbContext.Categories)
+            {
+                <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+</MudStack>
+
+<MudGrid Spacing="3" Justify="Justify.Center">
     @foreach (var product in _products)
     {
-        <MudItem xs="12" sm="6" md="4" lg="3">
-            <MudCard Class="rounded">
-                <MudCardMedia Image="@ImageUrl(product.ImageUrl)" Height="250"/>
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">@product.Name</MudText>
-                    <MudText Typo="Typo.body2">@product.Description</MudText>
-                </MudCardContent>
-                <MudDivider/>
-                <MudCardActions>
-                    <MudText Typo="Typo.h6" Class="mx-1">$@product.Price</MudText>
-                    <MudSpacer/>
-                    <MudIconButton Icon="@Icons.Material.Filled.AddShoppingCart"
-
-                                   Color="Color.Default"
-                                   OnClick="() => AddItem(product,1)"/>
-                </MudCardActions>
-            </MudCard>
+        <MudItem xs="12" sm="4" md="3" lg="2">
+            <ProductCard Product="product"/>
         </MudItem>
     }
 </MudGrid>
+<MudPaper Class="d-flex justify-center pa-4 mt-4">
+    <MudPagination Count="@((int)Math.Ceiling((double)_totalCount / PageSize))"
+                   Selected="@_pageIndex"
+                   BoundaryCount="1"
+                   SelectedChanged="@OnPageChanged"/>
+</MudPaper>

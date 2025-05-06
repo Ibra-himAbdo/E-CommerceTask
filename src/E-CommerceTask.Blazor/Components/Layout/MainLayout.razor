@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
 
 <MudThemeProvider Theme="@_theme" IsDarkMode="_isDarkMode"/>
 <MudPopoverProvider/>
@@ -12,12 +14,28 @@
             </MudText>
         </MudLink>
         <MudSpacer/>
-        <SearchComponent />
+        <SearchComponent/>
         <MudSpacer/>
         <ShoppingCartComponent/>
-        <MudIconButton Icon="@(DarkLightModeButtonIcon)"
-                       Color="Color.Inherit"
-                       OnClick="@DarkModeToggle"/>
+        <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                 AriaLabel="Open user menu">
+            <MudMenuItem Icon="@(DarkLightModeButtonIcon)"
+                         Label="Toggle dark mode"
+                         OnClick="@DarkModeToggle"/>
+            @if (!_isAuthenticated)
+            {
+                <MudMenuItem Icon="@Icons.Material.Filled.Login"
+                             Label="Login"
+                             Href="/login"/>
+            }
+            else
+            {
+                <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                             Label="Logout"
+                             OnClick="async ()=> await Logout()"/>
+            }
+
+        </MudMenu>
     </MudAppBar>
     <MudMainContent Class="mt-16 pa-4">
         @Body
@@ -34,17 +52,25 @@
 @code {
     private bool _isDarkMode = true;
     private MudTheme? _theme;
+    private bool _isAuthenticated;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         _theme = new MudTheme
         {
             PaletteLight = _lightPalette,
             PaletteDark = _darkPalette,
             LayoutProperties = new LayoutProperties()
         };
+    }
+
+    private async Task Logout()
+    {
+        var authState = (AuthService)AuthStateProvider;
+        await authState.Logout();
+        NavigationManager.NavigateTo("/", forceLoad: true);
     }
 
     private void DarkModeToggle()

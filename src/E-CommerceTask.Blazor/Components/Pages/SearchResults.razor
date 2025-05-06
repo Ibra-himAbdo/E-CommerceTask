@@ -1,0 +1,48 @@
+@page "/search"
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Search Results</PageTitle>
+
+<MudText Typo="Typo.h4" Class="my-4">Search Results for "@_searchQuery"</MudText>
+
+@if (_products.Count == 0)
+{
+    <MudText>No products found matching your search.</MudText>
+}
+else
+{
+    <MudGrid Spacing="3" Justify="Justify.FlexStart">
+        @foreach (var product in _products)
+        {
+            <MudItem xs="12" sm="4" md="3" lg="2">
+                <ProductCard Product="@product" />
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? query { get; set; }
+
+    private string _searchQuery = string.Empty;
+    private List<Product> _products = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(query))
+        {
+            _searchQuery = query;
+            await SearchProducts();
+        }
+    }
+
+    private async Task SearchProducts()
+    {
+        _products = await DbContext.Products
+            .Include(p => p.Category)
+            .Where(p => p.Name.Contains(_searchQuery))
+            .ToListAsync();
+    }
+}

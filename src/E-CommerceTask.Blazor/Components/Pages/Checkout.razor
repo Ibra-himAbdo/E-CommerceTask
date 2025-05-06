@@ -1,6 +1,8 @@
 @page "/Checkout"
 @inject ICartService CartService
+@inject ISnackbar Snackbar
 <PageTitle>Checkout</PageTitle>
+@attribute [Authorize]
 
 <MudGrid>
     <MudItem xs="12" sm="7">
@@ -75,14 +77,3 @@
         </MudPaper>
     </MudItem>
 </MudGrid>
-
-@code {
-    string _address = string.Empty;
-    private ShippingMethod _selectedShipping = ShippingMethod.Standard;
-
-    protected override async Task OnInitializedAsync()
-        => await CartService.AddShoppingFee(_selectedShipping);
-
-    private async Task OnShippingChanged(ShippingMethod method)
-        => await CartService.AddShoppingFee(method);
-}

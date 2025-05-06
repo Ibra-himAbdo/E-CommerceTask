@@ -1,11 +1,18 @@
-<MudTextField Class="ml-3"
-              @bind-Value="Search"
-              Margin="Margin.Dense"
-              Placeholder="Search"
-              Variant="Variant.Outlined"
-              Adornment="Adornment.Start"
-              AdornmentIcon="@Icons.Material.Filled.Search"
-              AdornmentColor="Color.Default" />
-@code {
+@inject NavigationManager NavigationManager
+@inject ApplicationDbContext DbContext
 
-}
+<MudAutocomplete T="string"
+                 Class="ml-3"
+                 @bind-Text="_searchText"
+                 SearchFunc="@Search"
+                 OnKeyDown="@HandleKeyDown"
+                 ResetValueOnEmptyText="true"
+                 CoerceText="@_coerceText"
+                 CoerceValue="true"
+                 SelectValueOnTab="true"
+                 Margin="Margin.Dense"
+                 Placeholder="Search (press Enter)"
+                 Variant="Variant.Outlined"
+                 Adornment="Adornment.Start"
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 AdornmentColor="Color.Default"/>

@@ -1,14 +1,35 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Add MudBlazor services
 builder.Services.AddMudServices();
 builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ILibraryService, LibraryService>();
 
-// Add services to the container.
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseInMemoryDatabase(connectionString!));
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddAuthorization();
+builder.Services.AddAuthentication()
+    .AddScheme<JwtAuthHandlerOptions,JwtAuthHandler>("jwt", null);
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, AuthService>();
+builder.Services.AddHttpContextAccessor();
+
 var app = builder.Build();
+
+
+#region Database
+
+using (var scope = app.Services.CreateScope())
+{
+    var context =
+        scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await DataSeeding.SeedDefaultData(context);
+}
+#endregion
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -22,8 +43,18 @@ app.UseHttpsRedirection();
 
 app.UseAntiforgery();
 
+app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.WebRootPath, "uploads")),
+    RequestPath = "/uploads"
+});
+
+
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+await app.RunAsync();

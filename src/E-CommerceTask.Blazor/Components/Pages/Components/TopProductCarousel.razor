@@ -1,0 +1,24 @@
+<MudCarousel Class="mud-width-full"
+             Style="height:230px;"
+             ShowArrows="true"
+             ShowBullets="false"
+             EnableSwipeGesture="true"
+             AutoCycle="true"
+             AutoCycleTime="@TimeSpan.FromSeconds(2)"
+             ItemsSource="Products">
+    <ItemTemplate>
+        <div class="d-flex justify-center align-center" style="height:100%; width:100%;">
+            <MudLink Underline="Underline.None" Href="@($"/product/{@context.Id}")" Target="_self">
+                <img src="@ImageUrl(@context.ImageUrl)"
+                     style="object-fit:fill; max-height:100%; max-width:100%;" alt=""/>
+            </MudLink>
+        </div>
+    </ItemTemplate>
+</MudCarousel>
+
+@code{
+    [Parameter] public List<Product> Products { get; set; } = [];
+
+    private static string ImageUrl(string url)
+        => string.IsNullOrEmpty(url) ? "https://fakeimg.pl/600x400" : url;
+}
