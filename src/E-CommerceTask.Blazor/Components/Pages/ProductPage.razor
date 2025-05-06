@@ -1,0 +1,175 @@
+@page "/product/{Id:int}"
+@inject ICartService CartService
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ILibraryService LibraryService
+@inject ISnackbar Snackbar
+<PageTitle>@_product?.Name</PageTitle>
+
+@if (_product == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="mx-auto my-12"/>
+}
+else
+{
+    <MudGrid Justify="Justify.Center">
+
+        @if (!_isAuthenticated)
+        {
+            <MudItem xs="12">
+                <MudAlert Severity="Severity.Warning" Class="mt-4">
+                    <MudText>Please
+                        <MudLink Href="/login" Color="Color.Primary">sign in</MudLink>
+                        to purchase or download
+                    </MudText>
+                </MudAlert>
+            </MudItem>
+        }
+        <MudItem xs="12" sm="5">
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h4" Class="mb-4">
+                        <strong>@_product.Name</strong>
+                    </MudText>
+
+                    <!-- Simple Table for Product Details -->
+                    <MudSimpleTable Style="overflow-x: auto;" Class="mb-4">
+                        <thead>
+                        <tr>
+                            <th>Attribute</th>
+                            <th>Value</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><strong>Description</strong></td>
+                            <td>@_product.Description</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Price</strong></td>
+                            <td>@_product.Price.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rating</strong></td>
+                            <td>
+                                <MudRating ReadOnly="true"
+                                           SelectedValue="@((int)Math.Round(_product.Rate))"
+                                           Size="Size.Small"/>
+                                (@_product.Rate.ToString("0.0"))
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Category</strong></td>
+                            <td>@_product.Category?.Name</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Date Added</strong></td>
+                            <td>@_product.DateAdded.ToShortDateString()</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Availability</strong></td>
+                            <td>@(_product.Quantity > 0 ? "In Stock" : "Out of Stock")</td>
+                        </tr>
+                        </tbody>
+                    </MudSimpleTable>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" sm="4">
+            <MudPaper Class="pa-4 mud-height-full">
+                <MudCardMedia Image="@ImageUrl(_product.ImageUrl)" Height="258" Class="mb-4"/>
+
+                <MudStack Class="mb-4" Gap="8">
+                    <MudButton Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               FullWidth="true"
+                               Disabled="!_isAuthenticated"
+                               StartIcon="@Icons.Material.Filled.AddShoppingCart"
+                               OnClick="() => AddToCart(_product)">
+                        Add to Cart ($@_product.Price)
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined"
+                               Color="Color.Secondary"
+                               FullWidth="true"
+                               Disabled="@(_isDownloading || !_isAuthenticated || !_isInLibrary)"
+                               StartIcon="@(_isDownloading ? null : Icons.Material.Filled.Download)"
+                               OnClick="DownloadProduct">
+                        @if (_isDownloading)
+                        {
+                            <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"
+                                                 Color="Color.Secondary"/>
+                            <MudText Class="ms-2">Downloading...</MudText>
+                        }
+                        else
+                        {
+                            <MudText>Download @_product.Name</MudText>
+                        }
+                    </MudButton>
+                </MudStack>
+
+                <MudAlert Severity="Severity.Info" Class="mt-4">
+                    <MudText><strong>Product Guarantee</strong></MudText>
+                    <MudText>30-day money back guarantee</MudText>
+                </MudAlert>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private Product? _product;
+    private string? _userId;
+    private bool _isAuthenticated;
+    private bool _isDownloading = false;
+    private bool _isInLibrary = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAuthState();
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _product = await DbContext.Products
+            .Include(p => p.Category)
+            .FirstOrDefaultAsync(p => p.Id == Id);
+
+        if (_isAuthenticated && _product != null)
+        {
+            _isInLibrary = await LibraryService.IsInLibraryAsync(_product.Id, _userId!);
+        }
+    }
+
+    private async Task LoadAuthState()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        _userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    }
+
+    private async Task AddToCart(Product product)
+    {
+        if (!_isAuthenticated)
+        {
+            Snackbar.Add("Please sign in to add items to your cart.", Severity.Warning);
+            return;
+        }
+        await CartService.AddItemToCart(product, 1);
+    }
+
+    private async Task DownloadProduct()
+    {
+        _isDownloading = true;
+        StateHasChanged();
+        await Task.Delay(1500);
+        _isDownloading = false;
+        StateHasChanged();
+    }
+
+    private static string ImageUrl(string url)
+        => string.IsNullOrEmpty(url) ? "https://fakeimg.pl/600x400" : url;
+
+}

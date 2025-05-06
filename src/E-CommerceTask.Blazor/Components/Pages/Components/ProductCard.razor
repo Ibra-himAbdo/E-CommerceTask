@@ -1,0 +1,46 @@
+@inject ICartService CartService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject ISnackbar Snackbar
+
+@if (Product is null)
+{
+    <MudProgressCircular Size="Size.Medium" Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MudCard Class="rounded">
+        <MudLink Underline="Underline.None" Href="@($"/product/{Product.Id}")" Target="_self">
+            <MudCardMedia Image="@ImageUrl(Product.ImageUrl)" Height="252"/>
+        </MudLink>
+        <MudCardContent>
+            <MudText Class="truncate-text"
+                     Typo="Typo.h6">@Product.Name</MudText>
+            <div class="d-flex align-center mb-2">
+                <MudRating ReadOnly="true"
+                           SelectedValue="@((int)Math.Round(Product.Rate))"
+                           Size="Size.Small"
+                           Class="mr-1"/>
+                <MudText Typo="Typo.caption">(@Product.Rate.ToString("0.0"))</MudText>
+            </div>
+            <MudText Class="truncate-text"
+                     Typo="Typo.body2">@Product.Description</MudText>
+        </MudCardContent>
+        <MudDivider/>
+        <MudCardActions>
+            <MudText Typo="Typo.h6" Class="mx-1">
+                @if (Product.Price == 0)
+                {
+                    @("Free")
+                }
+                else
+                {
+                    @Product.Price.ToString("C")
+                }
+            </MudText>
+            <MudSpacer/>
+            <MudIconButton Icon="@Icons.Material.Filled.AddShoppingCart"
+                           Color="Color.Default"
+                           OnClick="() => AddItem(Product, 1)"/>
+        </MudCardActions>
+    </MudCard>
+}
