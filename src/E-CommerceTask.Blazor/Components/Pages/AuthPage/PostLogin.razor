@@ -1,0 +1,47 @@
+@page "/PostLogin"
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
+@implements IAsyncDisposable
+
+@code {
+    [SupplyParameterFromQuery] private string? Token { get; set; }
+    private bool _isDisposed;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Token))
+        {
+            await SafeNavigate("/login");
+            return;
+        }
+
+        try
+        {
+            await JsRuntime.InvokeVoidAsync("setAuthCookie", Token, 7, BlazorConstants.AuthCookieName);
+            await SafeNavigate("/");
+            Snackbar.Add("Logged in successfully", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Login failed: " + ex.Message, Severity.Error);
+            await SafeNavigate("/login");
+        }
+    }
+
+    private async Task SafeNavigate(string uri)
+    {
+        if (!_isDisposed)
+        {
+            await Task.Delay(1);
+            NavigationManager.NavigateTo(uri, forceLoad: true);
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _isDisposed = true;
+        await Task.CompletedTask;
+    }
+}

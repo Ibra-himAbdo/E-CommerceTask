@@ -1,0 +1,71 @@
+@page "/library"
+
+@inject ILibraryService LibraryService
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+
+@attribute [Authorize]
+
+<PageTitle>My Library</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="py-4">
+    <MudText Typo="Typo.h4" Class="mb-4">My Game Library</MudText>
+
+    @if (_library is null)
+    {
+        <MudProgressCircular Color="Color.Primary" Indeterminate="true" Class="mx-auto my-12"/>
+    }
+    else if (!_library.Any())
+    {
+        <MudPaper Class="pa-4 text-center">
+            <MudText>Your library is empty</MudText>
+            <MudButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      Class="mt-3"
+                      Href="/">
+                Browse Games
+            </MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var game in _library)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Class="h-100">
+                        <MudLink Underline="Underline.None" Href="@($"/product/{game.Id}")">
+                            <MudCardMedia Image="@ImageUrl(game.ImageUrl)" Height="180"/>
+                        </MudLink>
+                        <MudCardContent>
+                            <MudText Typo="Typo.h6" Class="mb-2">@game.Name</MudText>
+                            <MudText Typo="Typo.body2" Class="mb-2">@game.Category?.Name</MudText>
+                            <MudRating ReadOnly="true"
+                                      SelectedValue="@((int)Math.Round(game.Rate))"
+                                      Size="Size.Small"/>
+                        </MudCardContent>
+                        <MudCardActions Class="justify-end">
+                            <MudButton Variant="Variant.Filled"
+                                      Color="Color.Primary"
+                                      StartIcon="@Icons.Material.Filled.Download"
+                                      OnClick="() => DownloadGame(game.Id)"
+                                      Disabled="@(_downloadingGameId == game.Id)">
+                                @if (_downloadingGameId == game.Id)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Class="mr-2"/>
+                                    <span>Downloading</span>
+                                }
+                                else
+                                {
+                                    <span>Download</span>
+                                }
+                            </MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
