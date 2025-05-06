@@ -33,3 +33,9 @@
     max-width: 210px; /* or 100%, or adjust as needed */
 }
 
+@media screen and (max-width: 389px) {
+    .small-screen-text {
+        text-align: center;
+    }
+
+}

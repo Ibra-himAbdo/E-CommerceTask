@@ -1,0 +1,79 @@
+@page "/login"
+
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+
+<MudCard Class="mx-auto" Style="max-width: 500px; margin-top: 100px;">
+    <MudCardContent>
+        <MudText Typo="Typo.h4" Style="text-align: center;" Class="text-center mb-4">Login</MudText>
+
+        <EditForm Model="@model" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <MudTextField Label="Email"
+                        @bind-Value="model.Email"
+                        For="@(() => model.Email)"
+                        FullWidth
+                        Class="mb-3" />
+
+            <MudTextField Label="Password"
+                        @bind-Value="model.Password"
+                        For="@(() => model.Password)"
+                        InputType="InputType.Password"
+                        FullWidth
+                        Class="mb-3" />
+
+            <MudButton ButtonType="ButtonType.Submit"
+                     Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     FullWidth
+                     Disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Class="mr-2" />
+                    <span>Logging in...</span>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </MudButton>
+        </EditForm>
+
+        <MudText Class="text-center mt-3">
+            Don't have an account?
+            <MudLink Href="/register" Color="Color.Primary">Register</MudLink>
+        </MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private LoginModel model = new();
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        isLoading = true;
+
+        try
+        {
+            var authState =  (AuthService)AuthStateProvider;
+            var token = await authState.LoginAsync(model.Email.Trim().ToUpper(), model.Password);
+            if (!string.IsNullOrEmpty(token))
+            {
+                Navigation.NavigateTo("/postlogin?Token=" + token);
+                Snackbar.Add("Logged in successfully", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Invalid email or password", Severity.Error);
+            }
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+}

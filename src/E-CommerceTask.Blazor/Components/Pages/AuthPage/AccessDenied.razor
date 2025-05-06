@@ -1,0 +1,31 @@
+@page "/access-denied"
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="my-16">
+    <MudPaper Class="pa-8 text-center mx-auto" Style="text-align: center; max-width: 522px;" Elevation="5">
+        <MudStack Spacing="3" AlignItems="AlignItems.Center" Justify="Justify.Center">
+            <MudIcon Icon="@Icons.Material.Filled.Lock"
+                     Color="Color.Error"
+                     Style="font-size: 4rem;"
+                     Class="mb-2"/>
+
+            <MudText Typo="Typo.h4" Color="Color.Error" Class="mb-2">
+                Access Denied
+            </MudText>
+
+            <MudText Typo="Typo.body1" Class="mb-4">
+                You don't have permission to access this page.
+            </MudText>
+
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-5">
+                Please contact your administrator if you believe this is an error.
+            </MudText>
+
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Error"
+                       EndIcon="@Icons.Material.Filled.Home"
+                       Href="/">
+                Return to Home
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</MudContainer>

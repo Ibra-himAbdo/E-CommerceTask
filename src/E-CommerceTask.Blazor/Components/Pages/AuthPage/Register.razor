@@ -1,0 +1,87 @@
+@page "/register"
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudCard Class="mx-auto" Style="max-width: 500px; margin-top: 100px;">
+    <MudCardContent>
+        <MudText Typo="Typo.h4" Style="text-align: center;" Class="text-center mb-4">Create Account</MudText>
+
+        <EditForm Model="@model" OnValidSubmit="HandleRegister">
+            <DataAnnotationsValidator />
+            <MudTextField Label="Email"
+                        @bind-Value="model.Email"
+                        For="@(() => model.Email)"
+                        FullWidth
+                        Class="mb-3" />
+
+            <MudTextField Label="Password"
+                        @bind-Value="model.Password"
+                        For="@(() => model.Password)"
+                        InputType="InputType.Password"
+                        FullWidth
+                        Class="mb-3" />
+
+            <MudTextField Label="Confirm Password"
+                        @bind-Value="model.ConfirmPassword"
+                        For="@(() => model.ConfirmPassword)"
+                        InputType="InputType.Password"
+                        FullWidth
+                        Class="mb-3" />
+
+            <MudButton ButtonType="ButtonType.Submit"
+                     Variant="Variant.Filled"
+                     Color="Color.Primary"
+                     FullWidth
+                     Disabled="@_isLoading">
+                @if (_isLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Color="Color.Inherit" Class="mr-2" />
+                    <span>Creating account...</span>
+                }
+                else
+                {
+                    <span>Register</span>
+                }
+            </MudButton>
+        </EditForm>
+
+        <MudText Class="text-center mt-3">
+            Already have an account?
+            <MudLink Href="/login" Color="Color.Primary">Login</MudLink>
+        </MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    private RegisterModel model = new();
+    private bool _isLoading = false;
+
+    private async Task HandleRegister()
+    {
+        _isLoading = true;
+        try
+        {
+            var authState =  (AuthService)AuthStateProvider;
+            if (model.Password != model.ConfirmPassword)
+            {
+                Snackbar.Add("Passwords don't match", Severity.Error);
+                return;
+            }
+
+            if (await authState.RegisterAsync(model.Email, model.Password))
+            {
+                Navigation.NavigateTo("/login");
+                Snackbar.Add("Registration successful! Please login", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Email already exists", Severity.Error);
+            }
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}
