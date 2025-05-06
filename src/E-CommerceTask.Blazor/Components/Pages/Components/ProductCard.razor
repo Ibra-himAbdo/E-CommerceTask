@@ -4,7 +4,7 @@
 
 @if (Product is null)
 {
-    <MudProgressCircular Size="Size.Medium" Color="Color.Default" Indeterminate="true" />
+    <MudProgressCircular Size="Size.Medium" Color="Color.Default" Indeterminate="true"/>
 }
 else
 {
@@ -41,6 +41,13 @@ else
             <MudIconButton Icon="@Icons.Material.Filled.AddShoppingCart"
                            Color="Color.Default"
                            OnClick="() => AddItem(Product, 1)"/>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                   Color="Color.Default"
+                                   Href="@($"/admin/products/edit/{Product.Id}")"/>
+                </Authorized>
+            </AuthorizeView>
         </MudCardActions>
     </MudCard>
 }

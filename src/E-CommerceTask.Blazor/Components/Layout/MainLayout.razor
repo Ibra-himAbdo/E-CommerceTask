@@ -9,8 +9,8 @@
 <MudLayout>
     <MudAppBar Elevation="1">
         <MudLink Href="/" Color="Color.Default" Underline="Underline.None">
-            <MudText Typo="Typo.h5">
-                Market
+            <MudText Class="truncate-title-text" Typo="Typo.h5">
+                Night Market
             </MudText>
         </MudLink>
         <MudSpacer/>
@@ -22,18 +22,25 @@
             <MudMenuItem Icon="@(DarkLightModeButtonIcon)"
                          Label="Toggle dark mode"
                          OnClick="@DarkModeToggle"/>
-            @if (!_isAuthenticated)
-            {
-                <MudMenuItem Icon="@Icons.Material.Filled.Login"
-                             Label="Login"
-                             Href="/login"/>
-            }
-            else
-            {
-                <MudMenuItem Icon="@Icons.Material.Filled.Logout"
-                             Label="Logout"
-                             OnClick="async ()=> await Logout()"/>
-            }
+            <AuthorizeView>
+                <Authorized>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                                 Label="Logout"
+                                 OnClick="async ()=> await Logout()"/>
+                </Authorized>
+                <NotAuthorized>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Login"
+                                 Label="Login"
+                                 Href="/login"/>
+                </NotAuthorized>
+            </AuthorizeView>
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <MudMenuItem Icon="@Icons.Material.Filled.PlaylistAdd"
+                                 Label="Add New Game"
+                                 Href="/admin/products/new"/>
+                </Authorized>
+            </AuthorizeView>
 
         </MudMenu>
     </MudAppBar>
@@ -52,12 +59,10 @@
 @code {
     private bool _isDarkMode = true;
     private MudTheme? _theme;
-    private bool _isAuthenticated;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+        base.OnInitialized();
         _theme = new MudTheme
         {
             PaletteLight = _lightPalette,

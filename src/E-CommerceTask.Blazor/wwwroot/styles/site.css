@@ -30,7 +30,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: block;
-    max-width: 210px; /* or 100%, or adjust as needed */
+    max-width: 200px; /* or 100%, or adjust as needed */
 }
 
 @media screen and (max-width: 389px) {
