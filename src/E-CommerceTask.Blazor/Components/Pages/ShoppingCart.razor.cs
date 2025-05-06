@@ -3,10 +3,20 @@ namespace E_CommerceTask.Blazor.Components.Pages;
 public partial class ShoppingCart : ComponentBase
 {
     private List<Product> _products = [];
+    private bool _isAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
         _products = await CartService.GetCartItems();
+    }
+    public string Code { get; set; } = "DISCOUNT10";
+
+    private async Task UseCode()
+    {
+        await CartService.UsePromoCode(Code);
+        Console.WriteLine(Code);
     }
 
     private async Task AddItem(Product product, int quantity)
@@ -15,8 +25,8 @@ public partial class ShoppingCart : ComponentBase
     private async Task RemoveItem(int productId)
         => await CartService.RemoveFromCart(productId);
 
-    private async Task ClearCart()
-        => await CartService.ClearCart();
+    private async Task DeleteFromCart(int productId)
+        => await CartService.DeleteFromCart(productId);
 
     private static string ImageUrl(string url)
         => string.IsNullOrEmpty(url) ? "https://fakeimg.pl/600x400" : url;
