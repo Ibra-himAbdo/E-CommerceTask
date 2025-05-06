@@ -1,9 +1,13 @@
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ILibraryService LibraryService
+@inject ICartService CartService
+@inject AuthenticationStateProvider AuthStateProvider
 <MudText Typo="Typo.body1" Class="mb-4"><strong>Payment Method</strong></MudText>
 <MudChipSet T="PaymentMethod"
             @bind-SelectedValue="_selectedPayment"
             CheckMark SelectionMode="SelectionMode.SingleSelection"
             Class="mb-3">
-
     <MudChip Text="@nameof(PaymentMethod.CreditCard)" Value="PaymentMethod.CreditCard"/>
     <MudChip Text="@nameof(PaymentMethod.PayPal)" Value="PaymentMethod.PayPal"/>
     <MudChip Text="@nameof(PaymentMethod.GooglePay)" Value="PaymentMethod.GooglePay"/>
@@ -61,6 +65,7 @@
                    Class="ml-auto"
                    FullWidth="true"
                    Size="Size.Large"
+                   OnClick="async () => await OpenDialogAsync()"
                    StartIcon="@Icons.Material.Filled.Payment">
             Pay with PayPal
         </MudButton>
@@ -71,6 +76,7 @@
                    Class="ml-auto"
                    FullWidth="true"
                    Size="Size.Large"
+                   OnClick="async () => await OpenDialogAsync()"
                    StartIcon="@Icons.Custom.Brands.Google">
             Pay with Google Pay
         </MudButton>
@@ -81,6 +87,7 @@
                    Class="ml-auto"
                    FullWidth="true"
                    Size="Size.Large"
+                   OnClick="async () => await OpenDialogAsync()"
                    StartIcon="@Icons.Material.Filled.PhoneIphone">
             Pay with Apple Pay
         </MudButton>
