@@ -33,6 +33,14 @@
     max-width: 200px; /* or 100%, or adjust as needed */
 }
 
+.truncate-title-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 200px; /* or 100%, or adjust as needed */
+}
+
 @media screen and (max-width: 389px) {
     .small-screen-text {
         text-align: center;
