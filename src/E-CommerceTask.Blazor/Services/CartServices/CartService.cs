@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Services.CartServices;
 
 public class CartService : ICartService
@@ -46,7 +48,7 @@ public class CartService : ICartService
     }
 
 
-    public Task RemoveFromCart(int productId)
+    public Task RemoveFromCart(ObjectId productId)
     {
         var existingProduct =
             _cartItems.FirstOrDefault(p => p.Id == productId);
@@ -63,7 +65,7 @@ public class CartService : ICartService
         return Task.CompletedTask;
     }
 
-    public Task DeleteFromCart(int productId)
+    public Task DeleteFromCart(ObjectId productId)
     {
         var existingProduct =
             _cartItems.FirstOrDefault(p => p.Id == productId);
@@ -145,7 +147,7 @@ public class CartService : ICartService
         {
             products.Add(new Product
             {
-                Id = i + 1,
+                Id = ObjectId.GenerateNewId(),
                 Name = $"Product {i + 1}",
                 Description = $"Description for Product {i + 1}",
                 Price = Math.Round((decimal)(Random.NextDouble() * 100), 2),

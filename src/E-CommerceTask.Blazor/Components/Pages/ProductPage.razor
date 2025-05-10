@@ -1,4 +1,5 @@
-@page "/product/{Id:int}"
+@page "/product/{Id}"
+@using E_CommerceTask.Shared.Models
 @inject ICartService CartService
 @inject ApplicationDbContext DbContext
 @inject AuthenticationStateProvider AuthStateProvider
@@ -119,7 +120,7 @@ else
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public string Id { get; set; }
     private Product? _product;
     private string? _userId;
     private bool _isAuthenticated;
@@ -135,11 +136,11 @@ else
     {
         _product = await DbContext.Products
             .Include(p => p.Category)
-            .FirstOrDefaultAsync(p => p.Id == Id);
+            .FirstOrDefaultAsync(p => p.Id == ObjectId.Parse(Id));
 
         if (_isAuthenticated && _product != null)
         {
-            _isInLibrary = await LibraryService.IsInLibraryAsync(_product.Id, _userId!);
+            _isInLibrary = await LibraryService.IsInLibraryAsync(_product.Id, ObjectId.Parse(_userId!));
         }
     }
 

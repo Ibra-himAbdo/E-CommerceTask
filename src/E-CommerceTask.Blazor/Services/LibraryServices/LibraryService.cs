@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Services.LibraryServices;
 
 public class LibraryService : ILibraryService
@@ -11,7 +13,7 @@ public class LibraryService : ILibraryService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<Product>> GetUserLibraryAsync(string userId)
+    public async Task<List<Product>> GetUserLibraryAsync(ObjectId userId)
     {
         return await _context.Purchases
             .Where(p => p.UserId == userId && p.IsPaid)
@@ -21,7 +23,7 @@ public class LibraryService : ILibraryService
             .ToListAsync();
     }
 
-    public async Task<bool> AddToLibraryAsync(string userId, int productId)
+    public async Task<bool> AddToLibraryAsync(ObjectId userId, ObjectId productId)
     {
         // In a real app, this would be called after successful payment
         var existing = await _context.Purchases
@@ -39,7 +41,7 @@ public class LibraryService : ILibraryService
         return true;
     }
 
-    public async Task<bool> AddToLibraryAsync(string userId, List<int> productIds)
+    public async Task<bool> AddToLibraryAsync(ObjectId userId, List<ObjectId> productIds)
     {
         // Get existing purchases to avoid duplicates
         var existingProductIds = await _context.Purchases
@@ -70,13 +72,13 @@ public class LibraryService : ILibraryService
         return true;
     }
 
-    public Task<bool> IsInLibraryAsync(int productId, string userId)
+    public Task<bool> IsInLibraryAsync(ObjectId productId, ObjectId userId)
     {
         return _context.Purchases
             .AnyAsync(p => p.UserId == userId && p.ProductId == productId);
     }
 
-    public async Task<string> GetDownloadLinkAsync(int productId, string userId)
+    public async Task<string> GetDownloadLinkAsync(ObjectId productId, ObjectId userId)
     {
         var isUserHaveProduct = await _context.Purchases
             .AnyAsync(p => p.UserId == userId && p.ProductId == productId);

@@ -1,10 +1,12 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Services.LibraryServices;
 
 public interface ILibraryService
 {
-    Task<List<Product>> GetUserLibraryAsync(string userId);
-    Task<bool> AddToLibraryAsync(string userId, int productId);
-    Task<bool> AddToLibraryAsync(string userId, List<int> productIds);
-    Task<string> GetDownloadLinkAsync(int productId, string userId);
-    Task<bool> IsInLibraryAsync(int productId, string userId);
+    Task<List<Product>> GetUserLibraryAsync(ObjectId userId);
+    Task<bool> AddToLibraryAsync(ObjectId userId, ObjectId productId);
+    Task<bool> AddToLibraryAsync(ObjectId userId, List<ObjectId> productIds);
+    Task<string> GetDownloadLinkAsync(ObjectId productId, ObjectId userId);
+    Task<bool> IsInLibraryAsync(ObjectId productId, ObjectId userId);
 }

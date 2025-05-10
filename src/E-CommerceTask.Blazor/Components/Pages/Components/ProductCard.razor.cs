@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Components.Pages.Components;
 
 public partial class ProductCard : ComponentBase

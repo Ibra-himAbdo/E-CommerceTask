@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Components.Pages.Components;
 
 public partial class PaymentMethodsComponents : ComponentBase
@@ -30,7 +32,7 @@ public partial class PaymentMethodsComponents : ComponentBase
         var items = await CartService.GetCartItems();
         if (_userId != null)
         {
-            await LibraryService.AddToLibraryAsync(_userId, items.Select(p => p.Id)
+            await LibraryService.AddToLibraryAsync(ObjectId.Parse(_userId), items.Select(p => p.Id)
                 .ToList());
             await CartService.ClearCart();
             StateHasChanged();

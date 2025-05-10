@@ -1,9 +1,11 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Components.Pages;
 
 public partial class Library : ComponentBase
 {
     private List<Product>? _library;
-    private int? _downloadingGameId;
+    private ObjectId? _downloadingGameId;
     private string? userId;
 
     protected override async Task OnInitializedAsync()
@@ -14,11 +16,11 @@ public partial class Library : ComponentBase
 
         if (userId != null)
         {
-            _library = await LibraryService.GetUserLibraryAsync(userId);
+            _library = await LibraryService.GetUserLibraryAsync(ObjectId.Parse(userId));
         }
     }
 
-    private async Task DownloadGame(int gameId)
+    private async Task DownloadGame(ObjectId gameId)
     {
         _downloadingGameId = gameId;
         StateHasChanged();

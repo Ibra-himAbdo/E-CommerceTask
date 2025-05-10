@@ -1,4 +1,5 @@
 ﻿@page "/"
+@using E_CommerceTask.Shared.Models
 @inject ICartService CartService
 @inject ApplicationDbContext DbContext
 <PageTitle>Home</PageTitle>
@@ -34,13 +35,13 @@
         </MudChipSet>
     </MudItem>
     <MudItem>
-        <MudSelect T="int"
+        <MudSelect T="ObjectId"
                    Style="min-width: 160px;"
                    Variant="Variant.Outlined"
                    Label="Select Category"
                    Margin="Margin.Dense"
                    SelectedValuesChanged="OnSelectedCategoriesChanged!">
-            <MudSelectItem Value="0">All Categories</MudSelectItem>
+            <MudSelectItem Value="ObjectId.Empty">All Categories</MudSelectItem>
             @foreach (var category in DbContext.Categories)
             {
                 <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>

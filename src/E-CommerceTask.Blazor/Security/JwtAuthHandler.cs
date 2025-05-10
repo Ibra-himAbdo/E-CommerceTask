@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Security;
 
 public class JwtAuthHandler : AuthenticationHandler<JwtAuthHandlerOptions>

@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Components.Pages;
 
 public partial class ShoppingCart : ComponentBase
@@ -22,10 +24,10 @@ public partial class ShoppingCart : ComponentBase
     private async Task AddItem(Product product, int quantity)
         => await CartService.AddItemToCart(product, quantity);
 
-    private async Task RemoveItem(int productId)
+    private async Task RemoveItem(ObjectId productId)
         => await CartService.RemoveFromCart(productId);
 
-    private async Task DeleteFromCart(int productId)
+    private async Task DeleteFromCart(ObjectId productId)
         => await CartService.DeleteFromCart(productId);
 
     private static string ImageUrl(string url)

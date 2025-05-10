@@ -21,4 +21,9 @@
     <ItemGroup>
       <Folder Include="wwwroot\uploads\products\" />
     </ItemGroup>
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\E-CommerceTask.Shared\E-CommerceTask.Shared.csproj" />
+    </ItemGroup>
 </Project>

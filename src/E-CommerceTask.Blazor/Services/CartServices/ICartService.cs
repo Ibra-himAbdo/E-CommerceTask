@@ -1,3 +1,6 @@
+global using E_CommerceTask.Shared.Models;
+global using MongoDB.Bson;
+
 namespace E_CommerceTask.Blazor.Services.CartServices;
 
 public interface ICartService
@@ -8,8 +11,8 @@ public interface ICartService
     event Action? OnChange;
     Task AddToCart(Product product);
     Task AddItemToCart(Product product, int quantity);
-    Task RemoveFromCart(int productId);
-    Task DeleteFromCart(int productId);
+    Task RemoveFromCart(ObjectId productId);
+    Task DeleteFromCart(ObjectId productId);
     Task ClearCart();
     Task<List<Product>> GetCartItems();
     Task<decimal> GetTotalPrice();

@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Data;
 
 public static class DataSeeding
@@ -8,11 +10,11 @@ public static class DataSeeding
         {
             var categories = new List<ProductCategory>
             {
-                new() { Name = "PlayStation" },
-                new() { Name = "Xbox" },
-                new() { Name = "Nintendo Switch" },
-                new() { Name = "PC" },
-                new() { Name = "Mobile" },
+                new() { Name = "PlayStation", Id = ObjectId.GenerateNewId()},
+                new() { Name = "Xbox", Id = ObjectId.GenerateNewId() },
+                new() { Name = "Nintendo Switch" , Id = ObjectId.GenerateNewId()},
+                new() { Name = "PC" , Id = ObjectId.GenerateNewId()},
+                new() { Name = "Mobile" , Id = ObjectId.GenerateNewId()},
             };
 
             await context.Categories.AddRangeAsync(categories);
@@ -33,6 +35,7 @@ public static class DataSeeding
 
                 products.Add(new Product
                 {
+                    Id = ObjectId.GenerateNewId(),
                     Name = productName,
                     NormalizedName = productName.ToUpperInvariant(),
                     Description = $"Description for {productName}",
@@ -53,6 +56,7 @@ public static class DataSeeding
         {
             var admin = new User()
             {
+                Id = ObjectId.GenerateNewId(),
                 Email = "admin@me.com",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin@me.com"),
                 Role = "Admin"

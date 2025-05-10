@@ -1,3 +1,5 @@
+using E_CommerceTask.Shared.Models;
+
 namespace E_CommerceTask.Blazor.Components.Pages;
 
 public partial class Home : ComponentBase
@@ -10,7 +12,7 @@ public partial class Home : ComponentBase
 
     // Filter state
     private ProductFilters _selectedFilter = ProductFilters.All;
-    private IEnumerable<int> _selectedCategoryIds = [];
+    private IEnumerable<ObjectId> _selectedCategoryIds = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -31,7 +33,7 @@ public partial class Home : ComponentBase
             .Include(p => p.Category);
 
         // Apply category filter if any categories are selected
-        if (_selectedCategoryIds.Any() && _selectedCategoryIds.First() != 0)
+        if (_selectedCategoryIds.Any() && _selectedCategoryIds.First() != ObjectId.Empty)
         {
             query = query.Where(p => _selectedCategoryIds.Contains(p.CategoryId));
         }
@@ -66,7 +68,7 @@ public partial class Home : ComponentBase
     }
 
     // Your existing methods
-    private async Task OnSelectedCategoriesChanged(IEnumerable<int> selectedCategoryIds)
+    private async Task OnSelectedCategoriesChanged(IEnumerable<ObjectId> selectedCategoryIds)
     {
         _selectedCategoryIds = selectedCategoryIds;
         _pageIndex = 1; // Reset to first page when filters change

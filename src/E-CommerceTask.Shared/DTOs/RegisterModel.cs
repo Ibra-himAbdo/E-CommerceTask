@@ -1,4 +1,4 @@
-namespace E_CommerceTask.Blazor.Dtos;
+namespace E_CommerceTask.Shared.DTOs;
 
 public class RegisterModel
 {

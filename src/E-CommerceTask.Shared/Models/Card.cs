@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace E_CommerceTask.Blazor.Models;
+namespace E_CommerceTask.Shared.Models;
 
 public class Card
 {

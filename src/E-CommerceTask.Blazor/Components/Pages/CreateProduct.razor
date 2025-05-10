@@ -1,5 +1,6 @@
 @page "/admin/products/new"
-@page "/admin/products/edit/{Id:int}"
+@page "/admin/products/edit/{Id}"
+@using E_CommerceTask.Shared.Models
 @inject ApplicationDbContext DbContext
 @inject IJSRuntime JsRuntime
 @inject IWebHostEnvironment Environment
@@ -129,13 +130,13 @@
 </EditForm>
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] public string Id { get; set; }
     private Product model = new();
     private List<ProductCategory> categories = [];
     private string baseUrl;
     private IBrowserFile? uploadedFile;
     private const long MaxFileSize = 15 * 1024 * 1024;
-    private bool IsEditMode => Id > 0;
+    private bool IsEditMode => !string.IsNullOrEmpty(Id);
     private bool _isUploading;
     private bool _isProcessing;
     private bool success;
@@ -149,7 +150,7 @@
         {
             model = await DbContext.Products
                 .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == Id) ?? new Product();
+                .FirstOrDefaultAsync(p => p.Id == ObjectId.Parse(Id)) ?? new Product();
         }
     }
 

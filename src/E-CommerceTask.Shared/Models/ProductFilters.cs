@@ -1,5 +1,5 @@
-namespace E_CommerceTask.Blazor.Models;
-
+namespace E_CommerceTask.Shared.Models;
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ProductFilters
 {
     All,

@@ -5,6 +5,10 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E-CommerceTask.Blazor", "src\E-CommerceTask.Blazor\E-CommerceTask.Blazor.csproj", "{70F2FD74-5345-4E41-A592-66EA23836090}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E-CommerceTask.Server", "src\E-CommerceTask.Server\E-CommerceTask.Server.csproj", "{AEFAE0B2-1284-48C3-9DCC-7B7C5DEE013C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "E-CommerceTask.Shared", "src\E-CommerceTask.Shared\E-CommerceTask.Shared.csproj", "{5E1483F7-C4E2-4094-AEDF-328454E3C9BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +22,13 @@ Global
 		{70F2FD74-5345-4E41-A592-66EA23836090}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70F2FD74-5345-4E41-A592-66EA23836090}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70F2FD74-5345-4E41-A592-66EA23836090}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEFAE0B2-1284-48C3-9DCC-7B7C5DEE013C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEFAE0B2-1284-48C3-9DCC-7B7C5DEE013C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEFAE0B2-1284-48C3-9DCC-7B7C5DEE013C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEFAE0B2-1284-48C3-9DCC-7B7C5DEE013C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E1483F7-C4E2-4094-AEDF-328454E3C9BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E1483F7-C4E2-4094-AEDF-328454E3C9BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E1483F7-C4E2-4094-AEDF-328454E3C9BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E1483F7-C4E2-4094-AEDF-328454E3C9BE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

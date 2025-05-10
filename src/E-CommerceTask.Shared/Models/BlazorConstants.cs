@@ -1,4 +1,4 @@
-namespace E_CommerceTask.Blazor.Models;
+namespace E_CommerceTask.Shared.Models;
 
 public abstract class BlazorConstants
 {
