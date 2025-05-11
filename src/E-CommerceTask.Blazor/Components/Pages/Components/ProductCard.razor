@@ -9,7 +9,7 @@
 else
 {
     <MudCard Class="rounded">
-        <MudLink Underline="Underline.None" Href="@($"/product/{Product.Id}")" Target="_self">
+        <MudLink Underline="Underline.None" Href="@($"/product/{Product.Id.ToString()}")" Target="_self">
             <MudCardMedia Image="@ImageUrl(Product.ImageUrl)" Height="252"/>
         </MudLink>
         <MudCardContent>

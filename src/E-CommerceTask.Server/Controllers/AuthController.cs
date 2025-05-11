@@ -3,15 +3,8 @@ using E_CommerceTask.Shared.DTOs;
 
 namespace E_CommerceTask.Server.Controllers;
 
-public class AuthController : BaseApiController
+public class AuthController(IAuthService authService) : BaseApiController
 {
-    private readonly IAuthService _authService;
-
-    public AuthController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
     [HttpPost("register")]
     public async Task<ActionResult<ServiceResponse<AuthResponseDto>>> Register(
         [FromBody] RegisterModel registerDto)
@@ -21,7 +14,7 @@ public class AuthController : BaseApiController
             return BadRequest(ServiceResponse<AuthResponseDto>.Failure("Invalid data"));
         }
 
-        var response = await _authService.RegisterAsync(registerDto);
+        var response = await authService.RegisterAsync(registerDto);
 
         return response.IsSuccess
             ? CreatedAtAction(nameof(Register), response)
@@ -37,7 +30,7 @@ public class AuthController : BaseApiController
             return BadRequest(ServiceResponse<AuthResponseDto>.Failure("Invalid data"));
         }
 
-        var response = await _authService.LoginAsync(loginDto);
+        var response = await authService.LoginAsync(loginDto);
         return response.IsSuccess ? Ok(response) : Unauthorized(response);
     }
 }

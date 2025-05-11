@@ -1,8 +1,6 @@
 @page "/admin/products/new"
 @page "/admin/products/edit/{Id}"
-@using E_CommerceTask.Shared.Models
-@inject ApplicationDbContext DbContext
-@inject IJSRuntime JsRuntime
+@inject IProductService ProductService
 @inject IWebHostEnvironment Environment
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
@@ -48,13 +46,14 @@
                                @bind-Value="model.CategoryId"
                                For="@(() => model.CategoryId)"
                                Immediate="true">
-                        <MudSelectItem Value="0">-- Select Category --</MudSelectItem>
+                        <MudSelectItem Value="ObjectId.Empty">-- Select Category --</MudSelectItem>
                         @foreach (var category in categories)
                         {
                             <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
                         }
                     </MudSelect>
 
+                    <MudText Typo="Typo.subtitle1" Class="mt-4">Rate</MudText>
                     <MudSlider Label="Rating" Class="mt-4"
                                @bind-Value="model.Rate"
                                Min="0" Max="5" Step="0.5"
@@ -106,144 +105,11 @@
                 }
 
                 <MudText Typo="Typo.subtitle2" Class="mt-4">Image Preview</MudText>
-                @if (uploadedFile != null)
-                {
-                    <img src="@GetFullImageUrl($"/uploads/products/{uploadedFile.Name}")"
-                         alt="Uploaded Image"
-                         style="max-width: 100%; max-height: 300px;" />
-                }
-                else if (!string.IsNullOrWhiteSpace(model.ImageUrl))
-                {
-                    <img src="@GetFullImageUrl(model.ImageUrl)"
-                         alt="Product Image"
-                         style="max-width: 100%; max-height: 300px;" />
-                }
-                else
-                {
-                    <img src="https://fakeimg.pl/600x400?text=Product+Image"
-                         alt="Default Image"
-                         style="max-width: 100%; max-height: 300px;" />
-                }
+                <img src="@GetImageDisplay()"
+                     alt="Product Image"
+                     style="max-width: 100%; max-height: 300px;"/>
             </MudPaper>
         </MudItem>
     </MudGrid>
 </EditForm>
-
-@code {
-    [Parameter] public string Id { get; set; }
-    private Product model = new();
-    private List<ProductCategory> categories = [];
-    private string baseUrl;
-    private IBrowserFile? uploadedFile;
-    private const long MaxFileSize = 15 * 1024 * 1024;
-    private bool IsEditMode => !string.IsNullOrEmpty(Id);
-    private bool _isUploading;
-    private bool _isProcessing;
-    private bool success;
-    private string uploadError;
-
-    protected override async Task OnInitializedAsync()
-    {
-        baseUrl = NavigationManager.BaseUri;
-        categories = await DbContext.Categories.ToListAsync();
-        if (IsEditMode)
-        {
-            model = await DbContext.Products
-                .Include(p => p.Category)
-                .FirstOrDefaultAsync(p => p.Id == ObjectId.Parse(Id)) ?? new Product();
-        }
-    }
-
-
-    private string GetFullImageUrl(string url)
-    {
-        if (string.IsNullOrEmpty(url))
-            return "https://fakeimg.pl/600x400?text=Product+Image";
-        return url.StartsWith("http")
-            ? url
-            : $"{NavigationManager.BaseUri.TrimEnd('/')}{url}";
-    }
-
-    private async Task OnValidSubmit(EditContext context)
-    {
-        _isProcessing = true;
-        success = false;
-        uploadError = string.Empty;
-
-        try
-        {
-            model.NormalizedName = model.Name?.ToUpper()!;
-            model.DateAdded = IsEditMode ? model.DateAdded : DateTime.UtcNow;
-            model.ImageUrl = uploadedFile != null
-                ? Path.Combine("uploads", "products", uploadedFile.Name)
-                : model.ImageUrl;
-
-            if (IsEditMode)
-            {
-                DbContext.Products.Update(model);
-            }
-            else
-            {
-                await DbContext.Products.AddAsync(model);
-            }
-
-            await DbContext.SaveChangesAsync();
-            success = true;
-
-            // Reset form if not in edit mode
-            if (!IsEditMode)
-            {
-                model = new Product();
-                uploadedFile = null;
-                context.NotifyValidationStateChanged();
-            }
-        }
-        catch (Exception ex)
-        {
-            uploadError = $"Error saving product: {ex.Message}";
-        }
-        finally
-        {
-            _isProcessing = false;
-            StateHasChanged();
-        }
-    }
-
-    private async Task UploadFiles(IBrowserFile? file)
-    {
-        if (file == null)
-        {
-            Snackbar.Add("No file selected.", Severity.Error);
-            return;
-        }
-
-        if (file.Size > MaxFileSize)
-        {
-            Snackbar.Add("File size exceeds the 15MB limit.", Severity.Error);
-            return;
-        }
-
-        _isUploading = true;
-        uploadedFile = file;
-        StateHasChanged();
-
-        var folderPath = Path
-            .Combine(Environment.WebRootPath, "uploads", "products");
-
-        if (!Directory.Exists(folderPath))
-            Directory.CreateDirectory(folderPath);
-
-        var filePath = Path.Combine(folderPath, file.Name);
-        await using var stream = file.OpenReadStream(MaxFileSize);
-        await using var fileStream = new FileStream(filePath, FileMode.Create);
-        await stream.CopyToAsync(fileStream);
-
-        model.ImageUrl = $"/uploads/products/{uploadedFile.Name}";
-
-        _isUploading = false;
-        StateHasChanged();
-        Console.WriteLine("File uploaded successfully!");
-    }
-
-}
 

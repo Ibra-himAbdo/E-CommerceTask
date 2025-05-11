@@ -1,3 +1,5 @@
+using E_CommerceTask.Server.Helpers;
+
 var builder = WebApplication.CreateBuilder(args);
 
 var mongoDbSettings = Guard.Against.Null(
@@ -17,7 +19,11 @@ builder.Services.AddScoped<ITokenService,TokenService>();
 builder.Services.AddScoped<IAuthService,AuthService>();
 builder.Services.AddScoped<ILibraryService,LibraryService>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new ObjectIdJsonConverter());
+});
+
 builder.Services.AddOpenApi(options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
 builder.Services
     .AddAuthorization()
@@ -38,6 +44,18 @@ builder.Services
             ValidateAudience = false
         };
     });
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy
+                .AllowAnyOrigin()    // For development only; restrict in production!
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 var app = builder.Build();
 
@@ -70,7 +88,7 @@ if (app.Environment.IsDevelopment())
         };
     });
 }
-
+app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHttpsRedirection();

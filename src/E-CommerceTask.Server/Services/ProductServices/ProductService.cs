@@ -4,20 +4,37 @@ public class ProductService(ECommerceDbContext dbContext) : IProductService
 {
     public async Task<ServiceResponse<IEnumerable<Product>>> GetAllAsync()
     {
-        var products = await dbContext.Products.Include(c => c.Category)
-            .AsNoTracking()
+        var products = await dbContext.Products.AsNoTracking().ToListAsync();
+
+        var categoryIds = products.Select(p => p.CategoryId).Distinct().ToList();
+        var categories = await dbContext.Categories
+            .Where(c => categoryIds.Contains(c.Id))
             .ToListAsync();
+
+        foreach (var product in products)
+        {
+            product.Category = categories.FirstOrDefault(c => c.Id == product.CategoryId);
+        }
+
         return ServiceResponse<IEnumerable<Product>>.Success(products);
     }
 
+
     public async Task<ServiceResponse<Product>> GetByIdAsync(ObjectId id)
     {
-        var product = await dbContext.Products.Include(c => c.Category).AsNoTracking()
+        var product = await dbContext.Products.AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
-        return product is null
-            ? ServiceResponse<Product>.Failure("Product not found.")
-            : ServiceResponse<Product>.Success(product);
+
+        if (product == null)
+            return ServiceResponse<Product>.Failure("Product not found.");
+
+        // Manually fetch the category
+        product.Category = await dbContext.Categories
+            .FirstOrDefaultAsync(c => c.Id == product.CategoryId);
+
+        return ServiceResponse<Product>.Success(product);
     }
+
 
     public async Task<ServiceResponse<Product>> CreateAsync(Product product, ObjectId categoryId)
     {

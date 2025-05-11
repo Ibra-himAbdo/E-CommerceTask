@@ -60,7 +60,13 @@
         try
         {
             var authState =  (AuthService)AuthStateProvider;
-            var token = await authState.LoginAsync(model.Email.Trim().ToUpper(), model.Password);
+            var response = await authState.LoginAsync(model.Email.Trim(), model.Password);
+            if (!response.IsSuccess)
+            {
+                Snackbar.Add(response.Message, Severity.Error);
+                return;
+            }
+            var token = response.Data!.Token;
             if (!string.IsNullOrEmpty(token))
             {
                 Navigation.NavigateTo("/postlogin?Token=" + token);
@@ -68,7 +74,7 @@
             }
             else
             {
-                Snackbar.Add("Invalid email or password", Severity.Error);
+                Snackbar.Add(response.Message, Severity.Error);
             }
         }
         finally

@@ -37,14 +37,9 @@ public class ProductCategoryController(IProductCategoryService categoryService) 
     }
 
     [Authorize(Roles = "Admin")]
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(string id, [FromBody] ProductCategory category)
+    [HttpPut]
+    public async Task<IActionResult> Update( [FromBody] ProductCategory category)
     {
-        if (!ObjectId.TryParse(id, out var objectId) || category.Id != objectId)
-        {
-            return BadRequest("Invalid ID.");
-        }
-
         var response = await categoryService.UpdateAsync(category);
         return Ok(response);
     }

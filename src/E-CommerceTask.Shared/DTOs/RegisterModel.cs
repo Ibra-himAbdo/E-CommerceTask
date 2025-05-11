@@ -12,4 +12,14 @@ public class RegisterModel
 
     [Required]
     public string ConfirmPassword { get; set; }
+
+    public RegisterModel(string email, string password, string confirmPassword)
+    {
+        Email = email;
+        Password = password;
+        ConfirmPassword = confirmPassword;
+    }
+    public RegisterModel()
+    {
+    }
 }

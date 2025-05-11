@@ -1,7 +1,7 @@
 ﻿@page "/"
 @using E_CommerceTask.Shared.Models
 @inject ICartService CartService
-@inject ApplicationDbContext DbContext
+@inject IProductService ProductService
 <PageTitle>Home</PageTitle>
 
 <div class="mb-5">
@@ -42,7 +42,7 @@
                    Margin="Margin.Dense"
                    SelectedValuesChanged="OnSelectedCategoriesChanged!">
             <MudSelectItem Value="ObjectId.Empty">All Categories</MudSelectItem>
-            @foreach (var category in DbContext.Categories)
+            @foreach (var category in _categories)
             {
                 <MudSelectItem Value="@category.Id">@category.Name</MudSelectItem>
             }
@@ -51,7 +51,7 @@
 </MudStack>
 
 <MudGrid Spacing="3" Justify="Justify.Center">
-    @foreach (var product in _products)
+    @foreach (var product in _filteredProducts)
     {
         <MudItem xs="12" sm="4" md="3" lg="2">
             <ProductCard Product="product"/>

@@ -7,7 +7,6 @@ public class Product : BaseEntity
     [MaxLength(100)]
     public string Name { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Normalized name is required for search")]
     [MaxLength(100)]
     public string NormalizedName { get; set; } = string.Empty;
 
@@ -32,6 +31,7 @@ public class Product : BaseEntity
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;
 
     [Required]
+    [BsonRepresentation(BsonType.ObjectId)]
     public ObjectId CategoryId { get; set; }
 
     [BsonIgnoreIfNull]

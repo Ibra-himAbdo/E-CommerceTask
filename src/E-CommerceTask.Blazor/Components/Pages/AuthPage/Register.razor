@@ -69,15 +69,16 @@
                 Snackbar.Add("Passwords don't match", Severity.Error);
                 return;
             }
+            var response = await authState.RegisterAsync(model.Email.Trim().ToUpper(), model.Password, model.ConfirmPassword);
 
-            if (await authState.RegisterAsync(model.Email, model.Password))
+            if (response.IsSuccess)
             {
                 Navigation.NavigateTo("/login");
                 Snackbar.Add("Registration successful! Please login", Severity.Success);
             }
             else
             {
-                Snackbar.Add("Email already exists", Severity.Error);
+                Snackbar.Add(response.Message, Severity.Error);
             }
         }
         finally

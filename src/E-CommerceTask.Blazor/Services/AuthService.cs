@@ -1,12 +1,14 @@
-using E_CommerceTask.Shared.Models;
-
 namespace E_CommerceTask.Blazor.Services;
 
 public class AuthService(
-    ApplicationDbContext db,
     IHttpContextAccessor httpContextAccessor,
-    IJSRuntime jsRuntime) : AuthenticationStateProvider
+    IJSRuntime jsRuntime,
+    IHttpClientFactory clientFactory,
+    IOptions<ApiSettings> apiSettings) : AuthenticationStateProvider
 {
+    private readonly HttpClient _httpClient = clientFactory.CreateClient(apiSettings.Value.ApiName);
+    private readonly ApiSettings _apiSettings = apiSettings.Value;
+
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
         try
@@ -48,52 +50,40 @@ public class AuthService(
         }
     }
 
-    public async Task<bool> RegisterAsync(string email, string password)
+    public async Task<ServiceResponse<bool>> RegisterAsync(string email, string password, string confirmPassword)
     {
-        if (db.Users.Any(u => u.Email == email))
-            return false;
+        var registerDto = new RegisterModel(email, password, confirmPassword);
+        var response = await _httpClient.PostAsJsonAsync(_apiSettings.Endpoints?.Register, registerDto);
 
-        var user = new User
-        {
-            Email = email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            Role = "User"
-        };
+        if (response.IsSuccessStatusCode) return ServiceResponse<bool>.Success(true, "Registration successful");
 
-        db.Users.Add(user);
-        await db.SaveChangesAsync();
-        return true;
+        var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<AuthResponseDto>>();
+        return ServiceResponse<bool>.Failure(errorResponse?.Message ?? "Registration failed");
+
     }
 
-    public async Task<string?> LoginAsync(string email, string password)
+    public async Task<ServiceResponse<AuthResponseDto>> LoginAsync(string email, string password)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToUpper() == email);
-        if (user is null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            return null;
+        var loginDto = new LoginModel(email, password);
+        var response = await _httpClient.PostAsJsonAsync(_apiSettings.Endpoints?.Login, loginDto);
 
-        const string secretKey = "YourSuperSecretKeyWithAtLeast16Characters";
-        var keyBytes = Encoding.UTF8.GetBytes(secretKey);
-
-        // Create claims
-        var claims = new[]
+        if (!response.IsSuccessStatusCode)
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role)
-        };
+            var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<AuthResponseDto>>();
+            return errorResponse ?? ServiceResponse<AuthResponseDto>.Failure("Login failed");
+        }
 
-        // Create token
-        var token = new JwtSecurityToken(
-            issuer: "https://localhost:7128",
-            audience: "https://localhost:7128",
-            claims: claims,
-            expires: DateTime.UtcNow.AddDays(7),
-            signingCredentials: new SigningCredentials(
-                new SymmetricSecurityKey(keyBytes),
-                SecurityAlgorithms.HmacSha256)
-        );
+        var authResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<AuthResponseDto>>();
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        if (authResponse?.Data != null)
+        {
+            await jsRuntime.InvokeVoidAsync("setAuthCookie",
+                BlazorConstants.AuthCookieName,
+                authResponse.Data.Token,
+                7); // 7 days expiration
+        }
+
+        return authResponse ?? ServiceResponse<AuthResponseDto>.Failure("Invalid response from server");
     }
 
     public async Task Logout()

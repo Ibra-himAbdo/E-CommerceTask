@@ -1,14 +1,13 @@
 @page "/search"
-@using E_CommerceTask.Shared.Models
-@inject ApplicationDbContext DbContext
+@inject IProductService ProductService
 
 <PageTitle>Search Results</PageTitle>
 
 <MudText Typo="Typo.h4" Class="my-4">Search Results for "@_searchQuery"</MudText>
 
-@if (_products.Count == 0)
+@if (!_products.Any())
 {
-    <MudText>No products found matching your search.</MudText>
+    <MudText Typo="Typo.h5" Class="mx-auto my-15">No products found matching your search.</MudText>
 }
 else
 {
@@ -28,7 +27,7 @@ else
     public string? query { get; set; }
 
     private string _searchQuery = string.Empty;
-    private List<Product> _products = [];
+    private IEnumerable<Product> _products = [];
 
     protected override async Task OnParametersSetAsync()
     {
@@ -41,9 +40,14 @@ else
 
     private async Task SearchProducts()
     {
-        _products = await DbContext.Products
-            .Include(p => p.Category)
-            .Where(p => p.Name.Contains(_searchQuery))
-            .ToListAsync();
+        var productsResponse = await ProductService.GetAllAsync();
+        if (productsResponse.IsSuccess)
+        {
+            _products = productsResponse.Data ?? [];
+        }
+        else
+        {
+            Console.WriteLine($"Error loading products: {productsResponse.Message}");
+        }
     }
 }

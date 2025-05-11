@@ -1,13 +1,12 @@
-using E_CommerceTask.Shared.Models;
-
 namespace E_CommerceTask.Blazor.Components.Pages;
 
 public partial class Home : ComponentBase
 {
     private int _pageIndex = 1;
     private const int PageSize = 12;
-    private List<Product> _products = [];
-    private List<ProductCategory> categories = [];
+    private IEnumerable<Product> _products = [];
+    private IEnumerable<Product> _filteredProducts = [];
+    private IEnumerable<ProductCategory> _categories = [];
     private int _totalCount = 0;
 
     // Filter state
@@ -23,25 +22,33 @@ public partial class Home : ComponentBase
 
     private async Task LoadInitialData()
     {
-        categories = await DbContext.Categories.ToListAsync();
+        var categoryResponse = await ProductService.GetCategoriesAsync();
+        var productsResponse = await ProductService.GetAllAsync();
+        if (categoryResponse.IsSuccess && productsResponse.IsSuccess)
+        {
+            _categories = categoryResponse.Data ?? [];
+            _products = productsResponse.Data ?? [];
+        }
+        else
+        {
+            Console.WriteLine($"Error loading categories: {categoryResponse.Message}");
+            Console.WriteLine($"Error loading products: {productsResponse.Message}");
+        }
+
     }
 
-    private async Task ApplyCombinedFilters()
+    private Task ApplyCombinedFilters()
     {
-        // Base query with includes
-        IQueryable<Product> query = DbContext.Products
-            .Include(p => p.Category);
+        // Start with all products
+        var query = _products.AsQueryable();
 
         // Apply category filter if any categories are selected
-        if (_selectedCategoryIds.Any() && _selectedCategoryIds.First() != ObjectId.Empty)
+        if (_selectedCategoryIds.Any() && !_selectedCategoryIds.Contains(ObjectId.Empty))
         {
             query = query.Where(p => _selectedCategoryIds.Contains(p.CategoryId));
         }
 
-        // Get total count BEFORE pagination for pagination controls
-        _totalCount = await query.CountAsync();
-
-        // Apply sorting BEFORE pagination
+        // Apply sorting
         query = _selectedFilter switch
         {
             ProductFilters.TopRated => query.OrderByDescending(p => p.Rate),
@@ -52,13 +59,17 @@ public partial class Home : ComponentBase
             _ => query.OrderBy(p => p.Id),
         };
 
-        // Apply pagination LAST
-        var pagedQuery = query
-            .Skip((_pageIndex - 1) * PageSize)
-            .Take(PageSize);
+        // Get total count BEFORE pagination
+        _totalCount = query.Count();
 
-        _products = await pagedQuery.ToListAsync();
+        // Apply pagination
+        _filteredProducts = query
+            .Skip((_pageIndex - 1) * PageSize)
+            .Take(PageSize)
+            .ToList(); // Materialize the query
+
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
     private async Task OnPageChanged(int newPage)
