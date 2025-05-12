@@ -5,24 +5,23 @@ var builder = WebApplication.CreateBuilder(args);
 var mongoDbSettings = Guard.Against.Null(
     builder.Configuration.GetSection(nameof(MongoDbSettings))
         .Get<MongoDbSettings>());
-builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection(nameof(MongoDbSettings)));
+builder.Services.Configure<MongoDbSettings>(
+    builder.Configuration.GetSection(nameof(MongoDbSettings)));
 
 builder.Services.AddDbContext<ECommerceDbContext>(options =>
     options.UseMongoDB(Guard.Against.NullOrEmpty(mongoDbSettings.AtlasUri),
         Guard.Against.NullOrEmpty(mongoDbSettings.DatabaseName)));
 
-builder.Services.AddScoped<IProductService,ProductService>();
-builder.Services.AddScoped<IProductCategoryService,ProductCategoryService>();
-builder.Services.AddScoped<IPurchaseService,PurchaseService>();
-builder.Services.AddScoped<IUserService,UserService>();
-builder.Services.AddScoped<ITokenService,TokenService>();
-builder.Services.AddScoped<IAuthService,AuthService>();
-builder.Services.AddScoped<ILibraryService,LibraryService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductCategoryService, ProductCategoryService>();
+builder.Services.AddScoped<IPurchaseService, PurchaseService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILibraryService, LibraryService>();
 
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.Converters.Add(new ObjectIdJsonConverter());
-});
+builder.Services.AddControllers()
+    .AddJsonOptions(options => { options.JsonSerializerOptions.Converters.Add(new ObjectIdJsonConverter()); });
 
 builder.Services.AddOpenApi(options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
 builder.Services
@@ -51,7 +50,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .AllowAnyOrigin()    // For development only; restrict in production!
+                .AllowAnyOrigin() // For development only; restrict in production!
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         });
@@ -88,6 +87,7 @@ if (app.Environment.IsDevelopment())
         };
     });
 }
+
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
