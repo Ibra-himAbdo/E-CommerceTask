@@ -20,3 +20,4 @@ global using E_CommerceTask.Server.Services.PurchaseServices;
 global using E_CommerceTask.Server.Services.LibraryServices;
 global using E_CommerceTask.Shared.DTOs;
 global using E_CommerceTask.Server.Services.AuthServices;
+global using E_CommerceTask.Server.Helpers;

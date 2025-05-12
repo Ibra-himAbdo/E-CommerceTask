@@ -1,0 +1,11 @@
+@inject IProductService ProductService
+@inject ISnackbar Snackbar
+<MudDialog>
+    <DialogContent>
+        <MudText>Do you really want to delete these records? This process cannot be undone.</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit">Delete</MudButton>
+    </DialogActions>
+</MudDialog>

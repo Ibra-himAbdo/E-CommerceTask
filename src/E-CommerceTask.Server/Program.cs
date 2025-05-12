@@ -1,5 +1,3 @@
-using E_CommerceTask.Server.Helpers;
-
 var builder = WebApplication.CreateBuilder(args);
 
 var mongoDbSettings = Guard.Against.Null(

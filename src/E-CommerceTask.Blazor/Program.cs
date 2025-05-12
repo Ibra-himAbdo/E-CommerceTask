@@ -1,5 +1,3 @@
-using E_CommerceTask.Blazor.Helpers.ApiHelpers;
-
 var builder = WebApplication.CreateBuilder(args);
 
 var apiSettings = Guard.Against.Null(builder.Configuration.GetSection(nameof(ApiSettings))
@@ -63,10 +61,14 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.UseStaticFiles();
+var uploadsPath = Path.Combine(builder.Environment.WebRootPath, "uploads");
+
+if (!Directory.Exists(uploadsPath))
+    Directory.CreateDirectory(uploadsPath);
+
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(
-        Path.Combine(builder.Environment.WebRootPath, "uploads")),
+    FileProvider = new PhysicalFileProvider(uploadsPath),
     RequestPath = "/uploads"
 });
 

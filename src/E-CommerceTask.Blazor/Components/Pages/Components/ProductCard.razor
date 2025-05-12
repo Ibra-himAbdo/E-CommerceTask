@@ -1,6 +1,7 @@
 @inject ICartService CartService
 @inject AuthenticationStateProvider AuthStateProvider
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 @if (Product is null)
 {
@@ -43,9 +44,15 @@ else
                            OnClick="() => AddItem(Product, 1)"/>
             <AuthorizeView Roles="Admin">
                 <Authorized>
-                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                   Color="Color.Default"
-                                   Href="@($"/admin/products/edit/{Product.Id}")"/>
+                    <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                             AriaLabel="Open user menu">
+                        <MudMenuItem Icon="@Icons.Material.Filled.Edit"
+                                     Label="Edit"
+                                     Href="@($"/admin/products/edit/{Product.Id}")"/>
+                        <MudMenuItem Icon="@Icons.Material.Filled.Delete"
+                                     Label="Delete"
+                                     OnClick="async ()=> await DeleteProduct(Product.Id)"/>
+                    </MudMenu>
                 </Authorized>
             </AuthorizeView>
         </MudCardActions>

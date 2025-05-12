@@ -24,6 +24,17 @@ public partial class ProductCard : ComponentBase
         await CartService.AddItemToCart(product, quantity);
     }
 
+    private Task DeleteProduct(ObjectId productId)
+    {
+        var parameters = new DialogParameters<DeleteProductDialog>
+        {
+            { x => x.Id, productId }
+        };
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        StateHasChanged();
+        return DialogService.ShowAsync<DeleteProductDialog>("Delete Product", parameters, options);
+    }
+
     private static string ImageUrl(string url)
         => string.IsNullOrEmpty(url) ? "https://fakeimg.pl/600x400" : url;
 }
