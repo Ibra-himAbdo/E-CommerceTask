@@ -70,30 +70,45 @@ public class ProductService : IProductService
         }
     }
 
-    public async Task<ServiceResponse<Product>> CreateAsync(Product product)
+    public async Task<ServiceResponse<bool>> CreateAsync(Product product)
     {
         try
         {
-            SetAuthorizationHeader();
-            var content = new StringContent(
-                JsonSerializer.Serialize(product, _jsonOptions),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await _httpClient.PostAsync(_apiSettings.Endpoints!.Product, content);
-
-            if (response.IsSuccessStatusCode)
+            // 1. Create the DTO with all required fields
+            var productDto = new AddProductDto
             {
-                return await response.Content.ReadFromJsonAsync<ServiceResponse<Product>>(_jsonOptions)
-                       ?? ServiceResponse<Product>.Failure("Created product data was empty");
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                ImageUrl = product.ImageUrl,
+                Quantity = product.Quantity,
+                Rate = product.Rate,
+                CategoryId = product.CategoryId
+            };
+
+            SetAuthorizationHeader();
+
+            // 2. Send the request with proper JSON serialization
+            var response = await _httpClient.PostAsJsonAsync(
+                _apiSettings.Endpoints!.Product,
+                productDto,
+                _jsonOptions);
+
+            // 3. Handle the response
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                return ServiceResponse<bool>.Failure(
+                    $"Failed to create product (Status: {response.StatusCode})");
             }
 
-            var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<Product>>(_jsonOptions);
-            return errorResponse ?? ServiceResponse<Product>.Failure("Failed to create product");
+            var result = await response.Content.ReadFromJsonAsync<ServiceResponse<bool>>(_jsonOptions);
+            return result ?? ServiceResponse<bool>.Failure("Received empty response from server");
         }
         catch (Exception ex)
         {
-            return ServiceResponse<Product>.Failure($"Failed to create product: {ex.Message}");
+            return ServiceResponse<bool>.Failure(
+                $"Failed to create product {ex.Message}");
         }
     }
 

@@ -21,3 +21,4 @@ global using E_CommerceTask.Server.Services.LibraryServices;
 global using E_CommerceTask.Shared.DTOs;
 global using E_CommerceTask.Server.Services.AuthServices;
 global using E_CommerceTask.Server.Helpers;
+global using System.Text.Json.Serialization;

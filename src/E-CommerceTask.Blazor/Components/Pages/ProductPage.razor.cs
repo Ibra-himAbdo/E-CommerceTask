@@ -4,7 +4,6 @@ public partial class ProductPage : ComponentBase
 {
     [Parameter] public string Id { get; set; }
     private Product? _product;
-    private string? _userId;
     private bool _isAuthenticated;
     private bool _isDownloading = false;
     private bool _isInLibrary = false;
@@ -16,10 +15,10 @@ public partial class ProductPage : ComponentBase
 
     protected override async Task OnParametersSetAsync()
     {
-        var response = await ProductService.GetByIdAsync(ObjectId.Parse(Id));
-        if (response.IsSuccess)
+        var productServiceResponse = await ProductService.GetByIdAsync(ObjectId.Parse(Id));
+        if (productServiceResponse.IsSuccess)
         {
-            _product = response.Data;
+            _product = productServiceResponse.Data;
         }
         else
         {
@@ -27,9 +26,10 @@ public partial class ProductPage : ComponentBase
             return;
         }
 
-        if (_isAuthenticated && _product != null)
+        if (_isAuthenticated && _product is not null)
         {
-            _isInLibrary = await LibraryService.IsInLibraryAsync(_product.Id, ObjectId.Parse(_userId!));
+            var libraryResponse = await LibraryService.IsInLibraryAsync(_product.Id);
+            _isInLibrary = libraryResponse.Data;
         }
     }
 
@@ -37,7 +37,6 @@ public partial class ProductPage : ComponentBase
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
-        _userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     }
 
     private async Task AddToCart(Product product)
@@ -47,6 +46,7 @@ public partial class ProductPage : ComponentBase
             Snackbar.Add("Please sign in to add items to your cart.", Severity.Warning);
             return;
         }
+
         await CartService.AddItemToCart(product, 1);
     }
 
@@ -56,10 +56,10 @@ public partial class ProductPage : ComponentBase
         StateHasChanged();
         await Task.Delay(1500);
         _isDownloading = false;
+        Snackbar.Add("Product downloaded successfully!", Severity.Success);
         StateHasChanged();
     }
 
     private static string ImageUrl(string url)
         => string.IsNullOrEmpty(url) ? "https://fakeimg.pl/600x400" : url;
-
 }

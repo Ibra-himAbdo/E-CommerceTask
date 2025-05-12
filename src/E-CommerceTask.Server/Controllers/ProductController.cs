@@ -23,14 +23,26 @@ public class ProductController(IProductService productService) : BaseApiControll
 
     [Authorize(Roles = "Admin")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Product product)
+    public async Task<IActionResult> Create([FromBody] AddProductDto request)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var response = await productService.CreateAsync(product, product.CategoryId);
+        var product = new Product()
+        {
+            Name = request.Name,
+            NormalizedName = request.Name.ToUpper(),
+            Description = request.Description,
+            Price = request.Price,
+            Quantity = request.Quantity,
+            ImageUrl = request.ImageUrl,
+            CategoryId = request.CategoryId,
+            DateAdded = DateTime.UtcNow,
+        };
+
+        var response = await productService.CreateAsync(product);
         return Ok(response);
     }
 

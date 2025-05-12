@@ -21,6 +21,7 @@
     default:
         <EditForm Model="@_card" OnValidSubmit="OnValidSubmit">
             <DataAnnotationsValidator/>
+            <ValidationSummary/> <!-- Add this to show all errors at once -->
             <MudGrid Spacing="4">
                 <MudItem xs="12">
                     <MudTextField @bind-Value="_card.CardNumber"
@@ -31,7 +32,9 @@
                                   Adornment="Adornment.End"
                                   AdornmentIcon="@Icons.Material.Filled.CreditCard"
                                   For="@(() => _card.CardNumber)"/>
+                    <ValidationMessage For="@(() => _card.CardNumber)"/>
                 </MudItem>
+
                 <MudItem xs="6">
                     <MudTextField @bind-Value="_card.ExpirationDate"
                                   MaxLength="5"
@@ -39,7 +42,9 @@
                                   Placeholder="MM/YY"
                                   Variant="Variant.Outlined"
                                   For="@(() => _card.ExpirationDate)"/>
+                    <ValidationMessage For="@(() => _card.ExpirationDate)"/>
                 </MudItem>
+
                 <MudItem xs="6">
                     <MudTextField @bind-Value="_card.CVV"
                                   MaxLength="4"
@@ -47,7 +52,9 @@
                                   Placeholder="CVV"
                                   Variant="Variant.Outlined"
                                   For="@(() => _card.CVV)"/>
+                    <ValidationMessage For="@(() => _card.CVV)"/>
                 </MudItem>
+
                 <MudItem xs="12">
                     <MudButton Type="ButtonType.Submit"
                                Variant="Variant.Filled"

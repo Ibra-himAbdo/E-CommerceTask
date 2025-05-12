@@ -6,13 +6,17 @@ public class LibraryService(ECommerceDbContext dbContext) : ILibraryService
     {
         try
         {
-            var products = await dbContext.Purchases
+            // Get all purchased product IDs for the user
+            var purchasedProductIds = await dbContext.Purchases
                 .Where(p => p.UserId == userId && p.IsPaid)
-                .Include(p => p.Product)
-                .ThenInclude(p => p.Category)
-                .Select(p => p.Product)
+                .Select(p => p.ProductId)
                 .ToListAsync();
-                
+
+            // Get all products that match the purchased IDs
+            var products = await dbContext.Products
+                .Where(p => purchasedProductIds.Contains(p.Id))
+                .ToListAsync();
+
             return ServiceResponse<IEnumerable<Product>>.Success(products);
         }
         catch (Exception ex)
@@ -25,10 +29,15 @@ public class LibraryService(ECommerceDbContext dbContext) : ILibraryService
     {
         try
         {
+            // Check if product exists
+            var productExists = await dbContext.Products.AnyAsync(p => p.Id == productId);
+            if (!productExists)
+                return ServiceResponse<bool>.Failure("Product not found");
+
             var existing = await dbContext.Purchases
                 .FirstOrDefaultAsync(p => p.UserId == userId && p.ProductId == productId);
 
-            if (existing != null) 
+            if (existing != null)
                 return ServiceResponse<bool>.Success(true, "Product already in library");
 
             dbContext.Purchases.Add(new Purchase
@@ -38,7 +47,7 @@ public class LibraryService(ECommerceDbContext dbContext) : ILibraryService
                 PurchaseDate = DateTime.UtcNow,
                 IsPaid = true
             });
-            
+
             await dbContext.SaveChangesAsync();
             return ServiceResponse<bool>.Success(true, "Product added to library");
         }
@@ -52,23 +61,32 @@ public class LibraryService(ECommerceDbContext dbContext) : ILibraryService
     {
         try
         {
+            // Verify all products exist
+            var existingProductsCount = await dbContext.Products
+                .CountAsync(p => productIds.Contains(p.Id));
+
+            if (existingProductsCount != productIds.Count)
+                return ServiceResponse<bool>.Failure("One or more products not found");
+
             var existingProductIds = await dbContext.Purchases
                 .Where(p => p.UserId == userId && productIds.Contains(p.ProductId))
                 .Select(p => p.ProductId)
                 .ToListAsync();
 
-            var newProductIds = productIds.Except(existingProductIds).ToList();
+            var newProductIds = productIds.Except(existingProductIds)
+                .ToList();
 
             if (!newProductIds.Any())
                 return ServiceResponse<bool>.Success(true, "All products already in library");
 
             var newPurchases = newProductIds.Select(productId => new Purchase
-            {
-                UserId = userId,
-                ProductId = productId,
-                PurchaseDate = DateTime.UtcNow,
-                IsPaid = true
-            }).ToList();
+                {
+                    UserId = userId,
+                    ProductId = productId,
+                    PurchaseDate = DateTime.UtcNow,
+                    IsPaid = true
+                })
+                .ToList();
 
             dbContext.Purchases.AddRange(newPurchases);
             await dbContext.SaveChangesAsync();
@@ -87,7 +105,7 @@ public class LibraryService(ECommerceDbContext dbContext) : ILibraryService
         {
             var exists = await dbContext.Purchases
                 .AnyAsync(p => p.UserId == userId && p.ProductId == productId);
-                
+
             return ServiceResponse<bool>.Success(exists);
         }
         catch (Exception ex)
@@ -102,13 +120,16 @@ public class LibraryService(ECommerceDbContext dbContext) : ILibraryService
         {
             var hasAccess = await dbContext.Purchases
                 .AnyAsync(p => p.UserId == userId && p.ProductId == productId);
-                
+
             if (!hasAccess)
                 return ServiceResponse<string>.Failure("You do not have access to this product");
 
             var product = await dbContext.Products.FindAsync(productId);
-            var downloadLink = $"/download/{productId}/{product?.Name.Replace(" ", "-")}";
-            
+            if (product == null)
+                return ServiceResponse<string>.Failure("Product not found");
+
+            var downloadLink = $"/download/{productId}/{product.Name.Replace(" ", "-")}";
+
             return ServiceResponse<string>.Success(downloadLink);
         }
         catch (Exception ex)

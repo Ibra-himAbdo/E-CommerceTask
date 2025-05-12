@@ -2,7 +2,7 @@ namespace E_CommerceTask.Blazor.Components.Pages;
 
 public partial class CreateProduct : ComponentBase
 {
-     [Parameter] public string Id { get; set; }
+    [Parameter] public string Id { get; set; }
     private Product model = new();
     private IEnumerable<ProductCategory> categories = [];
     private string _baseUrl;
@@ -128,13 +128,21 @@ public partial class CreateProduct : ComponentBase
                 ? Path.Combine("uploads", "products", uploadedFile.Name)
                 : model.ImageUrl;
 
+            ServiceResponse<bool> serviceResponse;
+
             if (IsEditMode)
             {
-                await ProductService.UpdateAsync(model);
+                serviceResponse = await ProductService.UpdateAsync(model);
             }
             else
             {
-                await ProductService.CreateAsync(model);
+                serviceResponse = await ProductService.CreateAsync(model);
+            }
+
+            if (!serviceResponse.IsSuccess)
+            {
+                Snackbar.Add($"Error saving product: {serviceResponse.Message}", Severity.Error);
+                return;
             }
 
             success = true;
@@ -144,6 +152,7 @@ public partial class CreateProduct : ComponentBase
             {
                 model = new Product();
                 uploadedFile = null;
+                _imageBase64 = null;
                 context.NotifyValidationStateChanged();
             }
         }

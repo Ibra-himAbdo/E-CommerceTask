@@ -1,7 +1,7 @@
 namespace E_CommerceTask.Server.Controllers;
 
 [Authorize]
-public class LibraryController(ILibraryService libraryService) : ControllerBase
+public class LibraryController(ILibraryService libraryService) : BaseApiController
 {
     private ActionResult? ValidateUserId()
     {

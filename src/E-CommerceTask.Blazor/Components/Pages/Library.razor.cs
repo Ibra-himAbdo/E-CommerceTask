@@ -1,26 +1,29 @@
-using E_CommerceTask.Shared.Models;
-
 namespace E_CommerceTask.Blazor.Components.Pages;
 
 public partial class Library : ComponentBase
 {
-    private List<Product>? _library;
+    private IEnumerable<Product>? _library;
     private ObjectId? _downloadingGameId;
-    private string? userId;
+    private bool _isAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)
-            ?.Value;
+        await LoadAuthState();
 
-        if (userId != null)
+        if (_isAuthenticated)
         {
-            _library = await LibraryService.GetUserLibraryAsync(ObjectId.Parse(userId));
+            var response = await LibraryService.GetUserLibraryAsync();
+            _library = response.Data ?? [];
         }
     }
 
-    private async Task DownloadGame(ObjectId gameId)
+    private async Task LoadAuthState()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        _isAuthenticated = authState.User.Identity?.IsAuthenticated ?? false;
+    }
+
+    private Task DownloadGame(ObjectId gameId)
     {
         _downloadingGameId = gameId;
         StateHasChanged();
@@ -28,15 +31,14 @@ public partial class Library : ComponentBase
         try
         {
             Snackbar.Add("Download started", Severity.Success);
-            // var downloadUrl = await LibraryService.GetDownloadLinkAsync(gameId, userId!);
-            // // In a real app, you would trigger the download here
-            // await JsRuntime.InvokeVoidAsync("open", downloadUrl, "_blank");
         }
         finally
         {
             _downloadingGameId = null;
             StateHasChanged();
         }
+
+        return Task.CompletedTask;
     }
 
     private static string ImageUrl(string url)

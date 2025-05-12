@@ -1,94 +1,158 @@
-using E_CommerceTask.Shared.Models;
-
 namespace E_CommerceTask.Blazor.Services.LibraryServices;
 
 public class LibraryService : ILibraryService
 {
-    private readonly ApplicationDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly HttpClient _httpClient;
+    private readonly ApiSettings _apiSettings;
 
-    public LibraryService(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+    public LibraryService(
+        IHttpClientFactory clientFactory,
+        IOptions<ApiSettings> apiSettings,
+        IOptions<JsonSerializerOptions> jsonOptions,
+        IHttpContextAccessor httpContextAccessor)
     {
-        _context = context;
         _httpContextAccessor = httpContextAccessor;
+        _jsonOptions = jsonOptions.Value;
+        _httpClient = clientFactory.CreateClient(apiSettings.Value.ApiName);
+        _apiSettings = apiSettings.Value;
     }
 
-    public async Task<List<Product>> GetUserLibraryAsync(ObjectId userId)
+    private string? GetJwtToken()
     {
-        return await _context.Purchases
-            .Where(p => p.UserId == userId && p.IsPaid)
-            .Include(p => p.Product)
-            .ThenInclude(p => p.Category)
-            .Select(p => p.Product)
-            .ToListAsync();
+        return !_httpContextAccessor.HttpContext!.Request.Cookies.ContainsKey(BlazorConstants.AuthCookieName)
+            ? null
+            : _httpContextAccessor.HttpContext.Request.Cookies[BlazorConstants.AuthCookieName];
     }
 
-    public async Task<bool> AddToLibraryAsync(ObjectId userId, ObjectId productId)
+    private void SetAuthorizationHeader()
     {
-        // In a real app, this would be called after successful payment
-        var existing = await _context.Purchases
-            .FirstOrDefaultAsync(p => p.UserId == userId && p.ProductId == productId);
-
-        if (existing != null) return true;
-        _context.Purchases.Add(new Purchase
+        var token = GetJwtToken();
+        if (!string.IsNullOrEmpty(token))
         {
-            UserId = userId,
-            ProductId = productId,
-            PurchaseDate = DateTime.UtcNow,
-            IsPaid = true
-        });
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
-    public async Task<bool> AddToLibraryAsync(ObjectId userId, List<ObjectId> productIds)
-    {
-        // Get existing purchases to avoid duplicates
-        var existingProductIds = await _context.Purchases
-            .Where(p => p.UserId == userId && productIds.Contains(p.ProductId))
-            .Select(p => p.ProductId)
-            .ToListAsync();
-
-        // Filter out products already in library
-        var newProductIds = productIds.Except(existingProductIds).ToList();
-
-        if (!newProductIds.Any())
-        {
-            return true; // All products already in library
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", token);
         }
-
-        // Add new purchases
-        var newPurchases = newProductIds.Select(productId => new Purchase
-        {
-            UserId = userId,
-            ProductId = productId,
-            PurchaseDate = DateTime.UtcNow,
-            IsPaid = true
-        }).ToList();
-
-        _context.Purchases.AddRange(newPurchases);
-        await _context.SaveChangesAsync();
-
-        return true;
     }
 
-    public Task<bool> IsInLibraryAsync(ObjectId productId, ObjectId userId)
+    public async Task<ServiceResponse<IEnumerable<Product>>> GetUserLibraryAsync()
     {
-        return _context.Purchases
-            .AnyAsync(p => p.UserId == userId && p.ProductId == productId);
-    }
-
-    public async Task<string> GetDownloadLinkAsync(ObjectId productId, ObjectId userId)
-    {
-        var isUserHaveProduct = await _context.Purchases
-            .AnyAsync(p => p.UserId == userId && p.ProductId == productId);
-        if (!isUserHaveProduct)
+        try
         {
-            throw new UnauthorizedAccessException("You do not have access to this product.");
+            SetAuthorizationHeader();
+            var response = await _httpClient.GetAsync(_apiSettings.Endpoints!.Library);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ServiceResponse<IEnumerable<Product>>>(_jsonOptions)
+                       ?? ServiceResponse<IEnumerable<Product>>.Failure("Library data was empty");
+            }
+
+            var errorResponse =
+                await response.Content.ReadFromJsonAsync<ServiceResponse<IEnumerable<Product>>>(_jsonOptions);
+            return errorResponse ?? ServiceResponse<IEnumerable<Product>>.Failure("Failed to get user library");
         }
-        var product = await _context.Products.FindAsync(productId);
-        return $"/download/{productId}/{product?.Name.Replace(" ", "-")}";
+        catch (Exception ex)
+        {
+            return ServiceResponse<IEnumerable<Product>>.Failure($"Failed to get user library: {ex.Message}");
+        }
     }
 
+    public async Task<ServiceResponse<bool>> AddToLibraryAsync(ObjectId productId)
+    {
+        try
+        {
+            SetAuthorizationHeader();
+            var response = await _httpClient.PostAsync(
+                $"{_apiSettings.Endpoints!.Library}/add/{productId}",
+                null);
 
+            if (response.IsSuccessStatusCode)
+            {
+                return ServiceResponse<bool>.Success(true, "Product added to library");
+            }
+
+            var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<bool>>(_jsonOptions);
+            return errorResponse ?? ServiceResponse<bool>.Failure("Failed to add product to library");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResponse<bool>.Failure($"Failed to add product to library: {ex.Message}");
+        }
+    }
+
+    public async Task<ServiceResponse<bool>> AddToLibraryAsync(List<ObjectId> productIds)
+    {
+        try
+        {
+            SetAuthorizationHeader();
+            var content = new StringContent(
+                JsonSerializer.Serialize(productIds, _jsonOptions),
+                Encoding.UTF8,
+                "application/json");
+
+            var response = await _httpClient.PostAsync(
+                $"{_apiSettings.Endpoints!.Library}/add-multiple",
+                content);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return ServiceResponse<bool>.Success(true, "Products added to library");
+            }
+
+            var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<bool>>(_jsonOptions);
+            return errorResponse ?? ServiceResponse<bool>.Failure("Failed to add products to library");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResponse<bool>.Failure($"Failed to add products to library: {ex.Message}");
+        }
+    }
+
+    public async Task<ServiceResponse<string>> GetDownloadLinkAsync(ObjectId productId)
+    {
+        try
+        {
+            SetAuthorizationHeader();
+            var response = await _httpClient.GetAsync(
+                $"{_apiSettings.Endpoints!.Library}/download/{productId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ServiceResponse<string>>(_jsonOptions)
+                       ?? ServiceResponse<string>.Failure("Download link was empty");
+            }
+
+            var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<string>>(_jsonOptions);
+            return errorResponse ?? ServiceResponse<string>.Failure("Failed to get download link");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResponse<string>.Failure($"Failed to get download link: {ex.Message}");
+        }
+    }
+
+    public async Task<ServiceResponse<bool>> IsInLibraryAsync(ObjectId productId)
+    {
+        try
+        {
+            SetAuthorizationHeader();
+            var response = await _httpClient.GetAsync(
+                $"{_apiSettings.Endpoints!.Library}/check/{productId}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadFromJsonAsync<ServiceResponse<bool>>(_jsonOptions)
+                       ?? ServiceResponse<bool>.Failure("Library check response was empty");
+            }
+
+            var errorResponse = await response.Content.ReadFromJsonAsync<ServiceResponse<bool>>(_jsonOptions);
+            return errorResponse ?? ServiceResponse<bool>.Failure("Failed to check library status");
+        }
+        catch (Exception ex)
+        {
+            return ServiceResponse<bool>.Failure($"Failed to check library status: {ex.Message}");
+        }
+    }
 }

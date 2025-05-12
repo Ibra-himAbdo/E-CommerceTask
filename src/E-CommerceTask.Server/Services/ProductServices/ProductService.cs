@@ -4,9 +4,12 @@ public class ProductService(ECommerceDbContext dbContext) : IProductService
 {
     public async Task<ServiceResponse<IEnumerable<Product>>> GetAllAsync()
     {
-        var products = await dbContext.Products.AsNoTracking().ToListAsync();
+        var products = await dbContext.Products.AsNoTracking()
+            .ToListAsync();
 
-        var categoryIds = products.Select(p => p.CategoryId).Distinct().ToList();
+        var categoryIds = products.Select(p => p.CategoryId)
+            .Distinct()
+            .ToList();
         var categories = await dbContext.Categories
             .Where(c => categoryIds.Contains(c.Id))
             .ToListAsync();
@@ -36,11 +39,11 @@ public class ProductService(ECommerceDbContext dbContext) : IProductService
     }
 
 
-    public async Task<ServiceResponse<Product>> CreateAsync(Product product, ObjectId categoryId)
+    public async Task<ServiceResponse<Product>> CreateAsync(Product product)
     {
         try
         {
-            var category = await dbContext.Categories.FindAsync(categoryId);
+            var category = await dbContext.Categories.FindAsync(product.CategoryId);
             if (category is null)
                 return ServiceResponse<Product>.Failure("Category not found.");
             product.NormalizedName = product.Name.ToUpperInvariant();

@@ -6,4 +6,5 @@ public record ApiEndpoints
     public string? ProductCategory { get; set; }
     public string? Register { get; set; }
     public string? Login { get; set; }
+    public string? Library { get; set; }
 }
