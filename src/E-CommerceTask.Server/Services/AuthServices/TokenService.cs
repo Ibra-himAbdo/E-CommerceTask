@@ -18,7 +18,7 @@ public class TokenService(IConfiguration configuration) : ITokenService
             issuer: null,
             audience: null,
             claims: claims,
-            expires: DateTime.Now.AddHours(1),
+            expires: DateTime.Now.AddDays(1),
             signingCredentials: creds);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

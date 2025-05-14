@@ -22,21 +22,6 @@
             <MudMenuItem Icon="@(DarkLightModeButtonIcon)"
                          Label="Toggle dark mode"
                          OnClick="@DarkModeToggle"/>
-            <AuthorizeView>
-                <Authorized>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout"
-                                 Label="Logout"
-                                 OnClick="async ()=> await Logout()"/>
-                    <MudMenuItem Icon="@Icons.Material.Filled.TableRows"
-                                 Label="Library"
-                                 Href="/Library"/>
-                </Authorized>
-                <NotAuthorized>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Login"
-                                 Label="Login"
-                                 Href="/login"/>
-                </NotAuthorized>
-            </AuthorizeView>
             <AuthorizeView Roles="Admin">
                 <Authorized>
                     <MudMenuItem Icon="@Icons.Material.Filled.PlaylistAdd"
@@ -44,6 +29,22 @@
                                  Href="/admin/products/new"/>
                 </Authorized>
             </AuthorizeView>
+            <AuthorizeView>
+                <Authorized>
+                    <MudMenuItem Icon="@Icons.Material.Filled.TableRows"
+                                 Label="Library"
+                                 Href="/Library"/>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout"
+                                 Label="Logout"
+                                 OnClick="async () => await Logout()"/>
+                </Authorized>
+                <NotAuthorized>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Login"
+                                 Label="Login"
+                                 Href="/login"/>
+                </NotAuthorized>
+            </AuthorizeView>
+
 
         </MudMenu>
     </MudAppBar>

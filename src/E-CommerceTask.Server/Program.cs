@@ -36,7 +36,6 @@ builder.Services
     .AddJwtBearer(options =>
     {
         options.RequireHttpsMetadata = false; // Set to true in production
-        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,

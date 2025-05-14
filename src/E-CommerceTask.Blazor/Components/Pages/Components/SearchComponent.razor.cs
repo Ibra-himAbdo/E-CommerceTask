@@ -4,22 +4,29 @@ public partial class SearchComponent : ComponentBase
 {
     private readonly bool _coerceText = true;
     private string _searchText = string.Empty;
-    private List<string> _products = [];
+    private IEnumerable<string> _productNames = [];
+    private IEnumerable<Product> _allProducts = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _products = await DbContext.Products
-            .Select(p => p.Name)
-            .ToListAsync();
+        var productsResponse = await ProductService.GetAllAsync();
+        if (productsResponse.IsSuccess)
+        {
+            _allProducts = productsResponse.Data ?? [];
+            _productNames = _allProducts
+                .Select(p => p.Name)
+                .Distinct()
+                .OrderBy(x => x);
+        }
     }
 
     private async Task<IEnumerable<string>> Search(string value, CancellationToken token)
     {
         await Task.Delay(5, token);
-        if (string.IsNullOrWhiteSpace(value))
-            return [];
-        return _products.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        return string.IsNullOrWhiteSpace(value)
+            ? []
+            : _productNames.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
     }
 
     private async Task HandleKeyDown(KeyboardEventArgs args)
@@ -40,9 +47,9 @@ public partial class SearchComponent : ComponentBase
 
     private async Task ExecuteSearch(string name)
     {
-        var matchingProducts = await DbContext.Products
-            .Where(p => p.NormalizedName.Contains(name))
-            .ToListAsync();
+        var matchingProducts = _allProducts
+            .Where(p => p.NormalizedName.Contains(name.ToUpper()))
+            .ToList();
 
         switch (matchingProducts.Count)
         {
@@ -60,5 +67,4 @@ public partial class SearchComponent : ComponentBase
         _searchText = string.Empty;
         StateHasChanged();
     }
-
 }

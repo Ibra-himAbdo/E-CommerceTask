@@ -21,7 +21,7 @@
 
         try
         {
-            await JsRuntime.InvokeVoidAsync("setAuthCookie", Token, 7, BlazorConstants.AuthCookieName);
+            await JsRuntime.InvokeVoidAsync("setAuthCookie", Token, 1, BlazorConstants.AuthCookieName);
             await SafeNavigate("/");
             Snackbar.Add("Logged in successfully", Severity.Success);
         }
@@ -46,4 +46,5 @@
         _isDisposed = true;
         await Task.CompletedTask;
     }
+
 }
